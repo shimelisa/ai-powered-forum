@@ -1,13 +1,22 @@
 import express from "express";
 import { db } from "./db/config.js";
-// import { mainRouter } from "./src/api/routes.js";
-// import { errorHandler } from "./src/middleware/error-handler.js";
-// import cors from "cors";
+import { mainRouter } from "./src/api/routes.js";
+import { errorHandler } from "./src/middleware/error-handler.js";
+import cors from "cors";
 
 const app = express();
 const port = process.env.PORT || 3777;
 
 // Middleware
+// app.use(cors());
+
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
 // app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -17,9 +26,9 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date() });
 });
 
-// app.use("/api", mainRouter);
+app.use("/api", mainRouter);
 
-// app.use(errorHandler);
+app.use(errorHandler);
 
 // Start server
 const startServer = async () => {

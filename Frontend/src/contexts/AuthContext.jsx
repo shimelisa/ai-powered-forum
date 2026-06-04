@@ -87,12 +87,12 @@ export function AuthProvider({ children }) {
  * Custom hook to access the authentication context.
  * @throws {Error} If used outside of AuthProvider
  */
-// export function useAuth() {
-//   const context = useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext);
 
-//   if (context === undefined) {
-//     throw new Error('useAuth must be used within an AuthProvider');
-//   }
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
 
-//   return context;
-// }
+  return context;
+}
