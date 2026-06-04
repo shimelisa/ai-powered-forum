@@ -5,7 +5,7 @@ import { db } from "./db/config.js";
 // import cors from "cors";
 
 const app = express();
-const port = process.env.POR4eeT || 3777;
+const port = process.env.PORT || 3777;
 
 // Middleware
 // app.use(cors());
