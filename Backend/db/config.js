@@ -10,6 +10,7 @@ export const db = mysql.createPool({
   database: process.env.DB_NAME || 'evangadi_forum',
 });
 
+
 const ensureParams = params => {
   if (params === undefined || params === null) {
     throw new Error('SQL parameters are required');
