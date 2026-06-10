@@ -37,6 +37,55 @@ export function compareVectorLengths(vectorA, vectorB) {
   }
 }
 
+/**
+ * Calculate cosine similarity between two embedding vectors. | line 42
+ * Formula: cos(θ) = (A · B) / (||A|| × ||B||)
+ *
+ * @param {number[]} vectorA - First embedding vector
+ * @param {number[]} vectorB - Second embedding vector
+ * @returns {number} Similarity score between -1 and 1 (typically 0 to 1 for embeddings)
+ * @throws {Error} If vectors have different lengths
+ */
+export function calculateCosineSimilarity(vectorA, vectorB) {
+  // Validate vectors have same length
+  if (vectorA.length !== vectorB.length) {
+    throw new Error(
+      `Vectors must have the same length. Got ${vectorA.length} and ${vectorB.length}`,
+    );
+  }
+
+  // Calculate dot product (sum of element-wise multiplication)
+  let dotProduct = 0;
+
+  for (let i = 0; i < vectorA.length; i++) {
+    dotProduct += vectorA[i] * vectorB[i];
+  }
+
+  // Calculate magnitude of vectorA (square root of sum of squares) | line 64
+  let magnitudeA = 0;
+  for (let i = 0; i < vectorA.length; i++) {
+    magnitudeA += vectorA[i] * vectorA[i];
+  }
+
+  magnitudeA = Math.sqrt(magnitudeA);
+
+  // Calculate magnitude of vectorB (square root of sum of squares)
+  let magnitudeB = 0;
+  for (let i = 0; i < vectorB.length; i++) {
+    magnitudeB += vectorB[i] * vectorB[i];
+  }
+
+  magnitudeB = Math.sqrt(magnitudeB);
+
+  // Handle edge case: return 0 if either magnitude is 0
+  if (magnitudeA === 0 || magnitudeB === 0) {
+    return 0;
+  }
+
+  // Return dot product divided by product of magnitudes
+  return dotProduct / (magnitudeA * magnitudeB);
+}
+
 export async function generateQuestionEmbedding(sourceText, options = {}) {
   const { taskType = "RETRIEVAL_DOCUMENT", questionid = null } = options;
 
