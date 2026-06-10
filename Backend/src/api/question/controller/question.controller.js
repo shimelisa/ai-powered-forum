@@ -1,5 +1,6 @@
-import { createQuestionWithVectorService } from "../service/question.service.js";
+import { createQuestionWithVectorService, getSimilarQuestionsService } from "../service/question.service.js";
 import { StatusCodes } from "http-status-codes";
+
 
 export const createQuestionController = async (req, res, next) => {
   try {
@@ -20,6 +21,23 @@ export const createQuestionController = async (req, res, next) => {
         content: result.question.content,
         userId: result.question.userId,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSimilarQuestionsController = async (req, res, next) => {
+  try {
+    const result = await getSimilarQuestionsService({
+      questionHash: req.params.questionHash,
+      k: req.query.k ? Number(req.query.k) : 5,
+      threshold: req.query.threshold ? Number(req.query.threshold) : undefined,
+    });    
+    res.status(StatusCodes.OK).json({      
+      success: true,
+      message: "Similar questions fetched successfully.",
+      ...result,
     });
   } catch (error) {
     next(error);
