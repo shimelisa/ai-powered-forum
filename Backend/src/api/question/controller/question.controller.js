@@ -1,5 +1,6 @@
-import { createQuestionWithVectorService } from "../service/question.service.js";
+import { createQuestionWithVectorService, getSimilarQuestionsService } from "../service/question.service.js";
 import { StatusCodes } from "http-status-codes";
+
 
 export const createQuestionController = async (req, res, next) => {
   try {

@@ -1,6 +1,9 @@
 import express from "express";
 import { authenticateUser } from "../../../middleware/authentication.js";
-import { createQuestionController } from "../controller/question.controller.js"; 
+import {
+  createQuestionController,
+  getSimilarQuestionsController,
+} from "../controller/question.controller.js";
 import { createQuestionValidation } from "../validations/question.validation.js";
 import { getSimilarQuestionsValidation } from "../validations/question.validation.js";
 
