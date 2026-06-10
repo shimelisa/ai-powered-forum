@@ -7,6 +7,8 @@ import {
   storeQuestionVector,
   findSimilarQuestionsByText,
   getVectorConfig,
+  findSimilarQuestionsByQuestionId,
+  getVectorConfig
 } from "./vector.service.js"; // Combined and added missing function
 
 export const createQuestionWithVectorService = async (payload) => {
@@ -53,7 +55,6 @@ export const createQuestionWithVectorService = async (payload) => {
 
     // Store the generated vector embedding in the database
     await storeQuestionVector({
-      
       questionId: creationResult.id,
       embedding: embeddingResult.embedding,
       status: "ready",
@@ -102,6 +103,30 @@ export const searchQuestionsSemanticService = async ({
 
   const result = await findSimilarQuestionsByText({
     sourceText,
+};
+
+export const getSimilarQuestionsService = async ({
+  questionHash,
+  k = 5,
+  threshold,
+}) => {
+  const questionRows = await safeExecute(
+    "SELECT question_id AS id FROM questions WHERE question_hash = ? LIMIT 1",
+    [questionHash],
+  );
+
+  if (questionRows.length === 0) {
+    throw new NotFoundError("Question not found");
+  }
+
+  const questionId = questionRows[0].id;
+
+  const vectorConfig = getVectorConfig();
+
+  const searchThreshold =
+    threshold !== undefined ? threshold : vectorConfig.recommendThreshold;
+  const similarQuestions = await findSimilarQuestionsByQuestionId({
+    questionId,
     threshold: searchThreshold,
     k,
   });
@@ -113,6 +138,12 @@ export const searchQuestionsSemanticService = async ({
       k,
       threshold: searchThreshold,
       total: result.similarQuestions.length,
+    data: similarQuestions,
+    meta: {
+      questionHash,
+      k,
+      threshold: searchThreshold,
+      total: similarQuestions.length,
     },
   };
 };

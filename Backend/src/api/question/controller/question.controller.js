@@ -1,8 +1,10 @@
+import { createQuestionWithVectorService, getSimilarQuestionsService } from "../service/question.service.js";
 import { StatusCodes } from "http-status-codes";
 import {
   createQuestionWithVectorService,
   searchQuestionsSemanticService,
 } from "../service/question.service.js";
+
 
 export const createQuestionController = async (req, res, next) => {
   try {
@@ -50,9 +52,20 @@ export const searchQuestionsSemanticController = async (req, res, next) => {
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Semantic search completed successfully.",
+export const getSimilarQuestionsController = async (req, res, next) => {
+  try {
+    const result = await getSimilarQuestionsService({
+      questionHash: req.params.questionHash,
+      k: req.query.k ? Number(req.query.k) : 5,
+      threshold: req.query.threshold ? Number(req.query.threshold) : undefined,
+    });    
+    res.status(StatusCodes.OK).json({      
+      success: true,
+      message: "Similar questions fetched successfully.",
       ...result,
     });
   } catch (error) {
     next(error);
   }
+};
 };
