@@ -5,6 +5,8 @@ import {
   normalizeQuestionText,
   generateQuestionEmbedding,
   storeQuestionVector,
+  findSimilarQuestionsByText,
+  getVectorConfig,
 } from "./vector.service.js"; // Combined and added missing function
 
 export const createQuestionWithVectorService = async (payload) => {
@@ -74,5 +76,43 @@ export const createQuestionWithVectorService = async (payload) => {
 
   return {
     question: creationResult,
+  };
+}; 
+
+/**
+ * Performs semantic search over questions.
+ *
+ * Delegates embedding, similarity scoring, and DB lookup entirely to
+ * vector.service — this layer only handles parameter normalisation
+ * and shaping the final API response envelope.
+ *
+ * @param {{ query: string, k?: number, threshold?: number }} params
+ * @returns {Promise<{ data: Object[], meta: Object }>}
+ */
+
+export const searchQuestionsSemanticService = async ({
+  query,
+  k = 5,
+  threshold,
+}) => {
+  const sourceText = normalizeQuestionText({ title: query });
+  const vectorConfig = getVectorConfig();
+  const searchThreshold =
+    threshold !== undefined ? threshold : vectorConfig.recommendThreshold;
+
+  const result = await findSimilarQuestionsByText({
+    sourceText,
+    threshold: searchThreshold,
+    k,
+  });
+
+  return {
+    data: result.similarQuestions,
+    meta: {
+      query,
+      k,
+      threshold: searchThreshold,
+      total: result.similarQuestions.length,
+    },
   };
 };

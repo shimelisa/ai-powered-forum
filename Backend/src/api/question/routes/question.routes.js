@@ -1,7 +1,7 @@
 import express from "express";
 import { authenticateUser } from "../../../middleware/authentication.js";
-import { createQuestionController } from "../controller/question.controller.js"; 
-import { createQuestionValidation } from "../validations/question.validation.js";
+import { createQuestionController, searchQuestionsSemanticController } from "../controller/question.controller.js"; 
+import { createQuestionValidation, searchQuestionsValidation } from "../validations/question.validation.js";
 
 const router = express.Router();
 
@@ -13,4 +13,16 @@ router.post(
   createQuestionController,
 );
 
-export const questionRoutes = router;
+/**
+ * @route  GET /api/questions/search
+ * @desc   Semantic search over questions using vector cosine similarity
+ * @access Protected (Bearer token required)
+ */
+router.get(
+  '/search',
+  authenticateUser,
+  searchQuestionsValidation,
+  searchQuestionsSemanticController
+);
+
+export default router;
