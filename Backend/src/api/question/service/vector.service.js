@@ -439,3 +439,15 @@ export async function findSimilarQuestionsByQuestionId({
     throw error;
   }
 }
+
+
+/**
+ * Get the current vector search configuration values from environment variables or defaults. | line 614
+ * @returns {Object} The current vector configuration values.
+ */
+export function getVectorConfig() {
+  return {
+    recommendThreshold: RECOMMEND_THRESHOLD,
+    recommendK: RECOMMEND_K,
+  };
+}
