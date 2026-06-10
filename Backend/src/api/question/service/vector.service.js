@@ -133,6 +133,60 @@ export async function storeQuestionVector({
 }
 
 /**
+ * Retrieve all ready embeddings from MySQL question_vectors table.
+ * Parses JSON embedding strings to JavaScript arrays and validates them.
+ * Invalid embeddings are skipped with a warning logged.
+ *
+ * @returns {Promise<Array>{questionId: number, embedding:number[]}>>} Array of question embeddings
+ */
+async function retrieveReadyEmbeddings() {
+  // Query question vectors table with status 'ready' filter
+  const sql = `
+  SELECT question_id, embedding
+  FROM question_vectors
+  WHERE status = ?
+`;
+
+  try {
+    const rows = await safeExecute(sql, ["ready"]);
+
+    // Parse and validate embeddings
+    const embeddings = [];
+    for (const row of rows) {
+      try {
+        // The database driver might already parse JSON columns into objects/arrays.
+        // If it's already an array, use it directly; otherwise, parse it.
+        const embedding =
+          typeof row.embedding === "string"
+            ? JSON.parse(row.embedding)
+            : row.embedding;
+
+        // Add valid embedding to results
+        embeddings.push({
+          questionId: row.question_id,
+          embedding: embedding,
+        });
+      } catch (parseError) {
+        console.warn(
+          `Skipping question ${row.question_id}: failed to parse embedding JSON`,
+          parseError,
+        );
+        continue;
+      }
+    }
+
+    return embeddings;
+  } catch (error) {
+    console.error("=== MYSQL RETRIEVE EMBEDDINGS ERROR ===");
+    console.error("Operation: retrieveReadyEmbeddings");
+    console.error("Error:", error);
+    console.error("============================");
+    throw error;
+  }
+}
+
+
+/**
  * Find similar questions using the pre-calculated embedding of an existing question from MySQL.| line 414
  * @param {Object} params - Search parameters.
  * @param {number|string} params.questionId - The ID of the question to find similarities for.
