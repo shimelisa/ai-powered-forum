@@ -3,9 +3,14 @@ import { authenticateUser } from "../../../middleware/authentication.js";
 import {
   createQuestionController,
   getSimilarQuestionsController,
+  getSingleQuestionController,
 } from "../controller/question.controller.js";
-import { createQuestionValidation } from "../validations/question.validation.js";
-import { getSimilarQuestionsValidation } from "../validations/question.validation.js";
+import {
+  createQuestionValidation,
+  getSimilarQuestionsValidation,
+  getSingleQuestionValidation,
+} from "../validations/question.validation.js";
+
 
 const router = express.Router();
 
@@ -29,4 +34,12 @@ router.get(
   getSimilarQuestionsController,
 );
 
+
+//single question details
+router.get(
+  "/:questionHash",
+  authenticateUser,
+  getSingleQuestionValidation,
+  getSingleQuestionController,
+)
 export const questionRoutes = router;
