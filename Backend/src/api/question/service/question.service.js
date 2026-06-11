@@ -120,7 +120,7 @@ export const getSimilarQuestionsService = async ({
 
 
 // Service for getting single question details
-export const getSingleQuestionService = async ({ questionHash }) => {
+export const getSingleQuestionService = async ({ questionHash, includeAnswers = true }) => {
   const normalizedAnswerLimit = 100;//fixed limit for number of answers to retrieve
 
   const questionSql = `
@@ -146,6 +146,10 @@ export const getSingleQuestionService = async ({ questionHash }) => {
   if (questionRows.length === 0) {
     throw new NotFoundError("Question not found");
   }
+
+   if (!includeAnswers) {
+     return { question: questionRows[0] };
+   }
   const question = questionRows[0];
   const questionId = question.id;
 
