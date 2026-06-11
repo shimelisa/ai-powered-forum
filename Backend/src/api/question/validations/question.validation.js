@@ -52,8 +52,6 @@ export const searchQuestionsValidation = [
 
   validationErrorHandler,
 ];
-  validationErrorHandler,
-];
 
 export const getSimilarQuestionsValidation = [
   param("questionHash")

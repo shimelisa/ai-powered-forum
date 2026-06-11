@@ -1,13 +1,15 @@
 import express from "express";
 import { authenticateUser } from "../../../middleware/authentication.js";
-import { createQuestionController, searchQuestionsSemanticController } from "../controller/question.controller.js"; 
-import { createQuestionValidation, searchQuestionsValidation } from "../validations/question.validation.js";
 import {
   createQuestionController,
+  searchQuestionsSemanticController,
   getSimilarQuestionsController,
 } from "../controller/question.controller.js";
-import { createQuestionValidation } from "../validations/question.validation.js";
-import { getSimilarQuestionsValidation } from "../validations/question.validation.js";
+import {
+  createQuestionValidation,
+  searchQuestionsValidation,
+  getSimilarQuestionsValidation,
+} from "../validations/question.validation.js";
 
 const router = express.Router();
 
@@ -25,13 +27,14 @@ router.post(
  * @access Protected (Bearer token required)
  */
 router.get(
-  '/search',
+  "/search",
   authenticateUser,
   searchQuestionsValidation,
-  searchQuestionsSemanticController
+  searchQuestionsSemanticController,
 );
 
 export default router;
+/**
  * @route GET /api/questions/:questionHash/similar
  * @desc Get similar questions based on vector embeddings
  * @access Private    >>> line 75

@@ -228,50 +228,6 @@ async function retrieveReadyEmbeddings() {
 }
 
 /**
- * Computes cosine similarity between two embedding vectors.
- *
- * @param {number[]} vectorA - First embedding vector.
- * @param {number[]} vectorB - Second embedding vector.
- * @returns {number} Similarity score between -1 and 1 (typically 0 to 1 for embeddings).
- * @throws {Error} If vectors have different lengths.
- */
-export function calculateCosineSimilarity(vectorA, vectorB) {
-  if (vectorA.length !== vectorB.length) {
-    throw new Error(
-      `Vectors must have the same length. Got ${vectorA.length} and ${vectorB.length}`,
-    );
-  }
-
-  // Calculate dot product (sum of element-wise multiplication)
-  let dotProduct = 0;
-  for (let i = 0; i < vectorA.length; i++) {
-    dotProduct += vectorA[i] * vectorB[i];
-  }
-
-  // Calculate magnitude of vectorA (square root of sum of squares)
-  let magnitudeA = 0;
-  for (let i = 0; i < vectorA.length; i++) {
-    magnitudeA += vectorA[i] * vectorA[i];
-  }
-  magnitudeA = Math.sqrt(magnitudeA);
-
-  // Calculate magnitude of vectorB (square root of sum of squares)
-  let magnitudeB = 0;
-  for (let i = 0; i < vectorB.length; i++) {
-    magnitudeB += vectorB[i] * vectorB[i];
-  }
-  magnitudeB = Math.sqrt(magnitudeB);
-
-  // Handle edge case: return 0 if either magnitude is 0
-  if (magnitudeA === 0 || magnitudeB === 0) {
-    return 0;
-  }
-
-  // Return dot product divided by product of magnitudes
-  return dotProduct / (magnitudeA * magnitudeB);
-}
-
-/**
  * Returns the resolved vector search configuration from environment variables.
  *
  * @returns {{ recommendThreshold: number, recommendK: number }}
@@ -440,58 +396,6 @@ export async function findSimilarQuestionsByText({ sourceText, threshold, k }) {
     similarQuestions,
   };
 }
- * Retrieve all ready embeddings from MySQL question_vectors table.
- * Parses JSON embedding strings to JavaScript arrays and validates them.
- * Invalid embeddings are skipped with a warning logged.
- *
- * @returns {Promise<Array>{questionId: number, embedding:number[]}>>} Array of question embeddings
- */
-async function retrieveReadyEmbeddings() {
-  // Query question vectors table with status 'ready' filter
-  const sql = `
-  SELECT question_id, embedding
-  FROM question_vectors
-  WHERE status = ?
-`;
-
-  try {
-    const rows = await safeExecute(sql, ["ready"]);
-
-    // Parse and validate embeddings
-    const embeddings = [];
-    for (const row of rows) {
-      try {
-        // The database driver might already parse JSON columns into objects/arrays.
-        // If it's already an array, use it directly; otherwise, parse it.
-        const embedding =
-          typeof row.embedding === "string"
-            ? JSON.parse(row.embedding)
-            : row.embedding;
-
-        // Add valid embedding to results
-        embeddings.push({
-          questionId: row.question_id,
-          embedding: embedding,
-        });
-      } catch (parseError) {
-        console.warn(
-          `Skipping question ${row.question_id}: failed to parse embedding JSON`,
-          parseError,
-        );
-        continue;
-      }
-    }
-
-    return embeddings;
-  } catch (error) {
-    console.error("=== MYSQL RETRIEVE EMBEDDINGS ERROR ===");
-    console.error("Operation: retrieveReadyEmbeddings");
-    console.error("Error:", error);
-    console.error("============================");
-    throw error;
-  }
-}
-
 
 /**
  * Find similar questions using the pre-calculated embedding of an existing question from MySQL.| line 414
@@ -697,8 +601,6 @@ export async function findSimilarQuestionsByQuestionId({
     throw error;
   }
 }
-
-
 /**
  * Get the current vector search configuration values from environment variables or defaults. | line 614
  * @returns {Object} The current vector configuration values.

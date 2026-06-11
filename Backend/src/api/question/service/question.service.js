@@ -8,7 +8,6 @@ import {
   findSimilarQuestionsByText,
   getVectorConfig,
   findSimilarQuestionsByQuestionId,
-  getVectorConfig
 } from "./vector.service.js"; // Combined and added missing function
 
 export const createQuestionWithVectorService = async (payload) => {
@@ -78,7 +77,7 @@ export const createQuestionWithVectorService = async (payload) => {
   return {
     question: creationResult,
   };
-}; 
+};
 
 /**
  * Performs semantic search over questions.
@@ -103,6 +102,19 @@ export const searchQuestionsSemanticService = async ({
 
   const result = await findSimilarQuestionsByText({
     sourceText,
+    threshold: searchThreshold,
+    k,
+  });
+
+  return {
+    data: result.similarQuestions,
+    meta: {
+      query,
+      k,
+      threshold: searchThreshold,
+      total: result.similarQuestions.length,
+    },
+  };
 };
 
 export const getSimilarQuestionsService = async ({
@@ -132,12 +144,6 @@ export const getSimilarQuestionsService = async ({
   });
 
   return {
-    data: result.similarQuestions,
-    meta: {
-      query,
-      k,
-      threshold: searchThreshold,
-      total: result.similarQuestions.length,
     data: similarQuestions,
     meta: {
       questionHash,
