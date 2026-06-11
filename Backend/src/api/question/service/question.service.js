@@ -5,7 +5,7 @@ import {
   normalizeQuestionText,
   generateQuestionEmbedding,
   storeQuestionVector,
-} from "./vector.service.js"; // Combined and added missing function
+} from "./vector.service.js";
 
 export const createQuestionWithVectorService = async (payload) => {
   const { userId, title, content } = payload;
