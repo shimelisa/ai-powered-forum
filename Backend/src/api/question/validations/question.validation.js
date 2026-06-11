@@ -52,3 +52,41 @@ export const searchQuestionsValidation = [
 
   validationErrorHandler,
 ];
+
+export const getQuestionsValidation = [
+  query("search")
+    .optional()
+    .isString()
+    .withMessage("Search must be a string")
+    .trim(),
+
+  query("mine")
+    .optional()
+    .isBoolean()
+    .withMessage("Mine must be a boolean")
+    .toBoolean(),
+
+  validationErrorHandler,
+];
+
+/**
+ * T-17 Draft Coach Validation
+ */
+export const generateQuestionDraftCoachValidation = [
+  body("title")
+    .optional()
+    .isString()
+    .withMessage("Title must be a string")
+    .trim(),
+
+  body("content")
+    .notEmpty()
+    .withMessage("Content is required")
+    .isString()
+    .withMessage("Content must be a string")
+    .isLength({ min: 10 })
+    .withMessage("Content must be at least 10 characters")
+    .trim(),
+
+  validationErrorHandler,
+];

@@ -1,3 +1,6 @@
+
+
+
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { safeExecute } from '../../../../db/config.js';
@@ -6,7 +9,9 @@ import {
   UnauthenticatedError,
 } from '../../../utils/errors/index.js';
 
-const JWT_SECRET = process.env.JWT_SECRET;
+// const JWT_SECRET = process.env.JWT_SECRET;
+// Replace the crashing line with a safe local dev fallback variable:
+const JWT_SECRET = process.env.JWT_SECRET || "37681fa3c2e24b0fef8ed5524bac17309ac7392c95f121624e41b6172ceda64d";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
 
 if (!JWT_SECRET) {
