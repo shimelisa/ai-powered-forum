@@ -2,7 +2,10 @@ import {
   createQuestionWithVectorService, getSimilarQuestionsService,
   getSingleQuestionService, searchQuestionsSemanticService,
 } from "../service/question.service.js";
-import { StatusCodes } from "http-status-codes";
+import {
+  generateQuestionDraftCoachService,
+} from "../service/geminiTextCoach.service.js";
+
 
 export const createQuestionController = async (req, res, next) => {
   try {
@@ -51,6 +54,29 @@ export const searchQuestionsSemanticController = async (req, res, next) => {
       success: true,
       message: "Semantic search completed successfully.",
       ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+/**
+ * POST /api/questions/draft-coach
+ */
+export const generateQuestionDraftCoachController = async (req, res, next) => {
+  try {
+    const { title = "", content } = req.body;
+
+    const result = await generateQuestionDraftCoachService({
+      title,
+      content,
+    });
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Draft suggestions generated",
+      data: result,
     });
   } catch (error) {
     next(error);
@@ -117,3 +143,4 @@ export const assessAnswerAgainstQuestionController = async (req, res, next) => {
     next(error);
   }
 };
+
