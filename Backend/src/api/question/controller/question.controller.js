@@ -1,4 +1,7 @@
-import { createQuestionWithVectorService, getSimilarQuestionsService } from "../service/question.service.js";
+import { 
+  createQuestionWithVectorService, getSimilarQuestionsService,
+  getSingleQuestionService
+} from "../service/question.service.js";
 import { StatusCodes } from "http-status-codes";
 
 
@@ -37,6 +40,24 @@ export const getSimilarQuestionsController = async (req, res, next) => {
     res.status(StatusCodes.OK).json({      
       success: true,
       message: "Similar questions fetched successfully.",
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Controller for getting single question details
+export const getSingleQuestionController = async (req, res, next) => {
+  try {
+    const { questionHash } = req.params;
+    const result = await getSingleQuestionService({
+      questionHash,
+    });
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Question details retrieved successfully.",
       ...result,
     });
   } catch (error) {
