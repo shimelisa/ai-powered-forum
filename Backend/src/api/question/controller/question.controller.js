@@ -1,9 +1,8 @@
 import { 
   createQuestionWithVectorService, getSimilarQuestionsService,
-  getSingleQuestionService
+  getSingleQuestionService, searchQuestionsSemanticService,
 } from "../service/question.service.js";
 import { StatusCodes } from "http-status-codes";
-
 
 export const createQuestionController = async (req, res, next) => {
   try {
@@ -30,14 +29,42 @@ export const createQuestionController = async (req, res, next) => {
   }
 };
 
+/**
+ * GET /api/questions/search
+ * Performs semantic (vector) search over questions using cosine similarity.
+ * @param {import('express').Request}  req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+
+export const searchQuestionsSemanticController = async (req, res, next) => {
+  try {
+    const result = await searchQuestionsSemanticService({
+      query: req.query.query,
+      k: req.query.k ? Number(req.query.k) : 5,
+      threshold:
+        req.query.threshold !== undefined
+          ? Number(req.query.threshold)
+          : undefined,
+    });
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Semantic search completed successfully.",
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getSimilarQuestionsController = async (req, res, next) => {
   try {
     const result = await getSimilarQuestionsService({
       questionHash: req.params.questionHash,
       k: req.query.k ? Number(req.query.k) : 5,
       threshold: req.query.threshold ? Number(req.query.threshold) : undefined,
-    });    
-    res.status(StatusCodes.OK).json({      
+    });
+    res.status(StatusCodes.OK).json({
       success: true,
       message: "Similar questions fetched successfully.",
       ...result,
