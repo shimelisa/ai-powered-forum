@@ -1,11 +1,11 @@
-import { StatusCodes } from "http-status-codes";
-import {
-  createQuestionWithVectorService,
-  searchQuestionsSemanticService,
+import { 
+  createQuestionWithVectorService, getSimilarQuestionsService,
+  getSingleQuestionService, searchQuestionsSemanticService,
 } from "../service/question.service.js";
 import {
   generateQuestionDraftCoachService,
 } from "../service/geminiTextCoach.service.js";
+
 
 export const createQuestionController = async (req, res, next) => {
   try {
@@ -60,14 +60,11 @@ export const searchQuestionsSemanticController = async (req, res, next) => {
   }
 };
 
+
 /**
  * POST /api/questions/draft-coach
  */
-export const generateQuestionDraftCoachController = async (
-  req,
-  res,
-  next
-) => {
+export const generateQuestionDraftCoachController = async (req, res, next) => {
   try {
     const { title = "", content } = req.body;
 
@@ -85,3 +82,65 @@ export const generateQuestionDraftCoachController = async (
     next(error);
   }
 };
+
+export const getSimilarQuestionsController = async (req, res, next) => {
+  try {
+    const result = await getSimilarQuestionsService({
+      questionHash: req.params.questionHash,
+      k: req.query.k ? Number(req.query.k) : 5,
+      threshold: req.query.threshold ? Number(req.query.threshold) : undefined,
+    });
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Similar questions fetched successfully.",
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Controller for getting single question details
+export const getSingleQuestionController = async (req, res, next) => {
+  try {
+    const { questionHash } = req.params;
+    const result = await getSingleQuestionService({
+      questionHash,
+    });
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Question details retrieved successfully.",
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Handles AI relevance assessment of an answer draft against a question.
+ */
+export const assessAnswerAgainstQuestionController = async (req, res, next) => {
+  try {
+    const { questionHash } = req.params;
+    const { answerText } = req.body;
+    const { question } = await getSingleQuestionService({
+      questionHash,
+      includeAnswers: false,
+    });
+    const data = await assessAnswerAgainstQuestionService({
+      questionTitle: question.title,
+      questionContent: question.content,
+      answerText,
+    });
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Answer fit assessed.",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

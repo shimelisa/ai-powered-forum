@@ -1,47 +1,75 @@
 // geminiTextCoach.service.js
-import { GoogleGenAI } from '@google/genai'; // Ensure your project uses this SDK format, or change to @google/generative-ai if that is installed
+import { GoogleGenAI } from '@google/genai';
+import { ServiceUnavailableError } from '../../../utils/errors/index.js';
 
-// Initialize Gemini AI Client using the API Key loaded from your .env file
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash-lite';
+
+if (!GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY environment variable is required');
+}
+
+const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 /**
- * Helper function to send prompts to Gemini and receive a raw text response
- * @param {string} prompt - The constructed prompt for the AI
- * @returns {Promise<string>} The raw text response from Gemini
+ * Strip optional markdown fence and parse JSON object from model text.
+ * @param {string} raw
+ * @returns {object|null}
  */
-const fetchGeminiJsonTextResponse = async (prompt) => {
-  const modelName = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
-  
+function parseJsonObjectFromGeminiText(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+
+  let t = raw.trim();
+
+  if (t.startsWith('```')) {
+    t = t
+      .replace(/^(?:```json)?\s*/i, '')
+      .replace(/\s*```$/i, '');
+  }
+
+  try {
+    const v = JSON.parse(t);
+    return v && typeof v === 'object' && !Array.isArray(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Helper for draft coach – uses dedicated model & config.
+ */
+async function fetchDraftCoachResponse(prompt) {
+  const modelName = process.env.GEMINI_DRAFT_COACH_MODEL || 'gemini-2.5-flash';
   const response = await ai.models.generateContent({
     model: modelName,
     contents: prompt,
     config: {
-      // Instructs Gemini to output structured JSON data natively
       responseMimeType: 'application/json'
     }
   });
-
   return response.text;
-};
+}
 
 /**
- * Helper function to safely parse a JSON string received from Gemini
- * @param {string} text - The raw text payload from the API
- * @returns {Object} The parsed JavaScript object
+ * Helper for assess answer – uses the main text model & config.
  */
-const parseJsonObjectFromGeminiText = (text) => {
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error("Failed to parse Gemini JSON output:", e);
-    return null;
-  }
-};
+async function fetchAssessAnswerResponse(prompt) {
+  const response = await ai.models.generateContent({
+    model: GEMINI_TEXT_MODEL,
+    contents: prompt,
+    config: {
+      maxOutputTokens: 300,
+    },
+  });
+  console.log(response);
+  const text = response?.text;
+  return typeof text === 'string' ? text : '';
+}
 
 /**
  * T-17 Draft Coach Service
  * Reviews user question drafts for technical clarity, formatting, and completeness.
- * * @param {Object} params
+ * @param {Object} params
  * @param {string} params.title - Optional title of the draft question
  * @param {string} params.content - Required content details of the question
  * @returns {Promise<Object>} An object containing an array of actionable tips
@@ -75,13 +103,8 @@ Reply ONLY with valid JSON:
 `;
 
   try {
-    // 1. Get raw text back from Gemini
-    const raw = await fetchGeminiJsonTextResponse(userPrompt);
-
-    // 2. Parse the text into a JavaScript Object
+    const raw = await fetchDraftCoachResponse(userPrompt);
     const parsed = parseJsonObjectFromGeminiText(raw);
-
-    // 3. Guarantee a valid return format matching the Task requirement
     return {
       tips: Array.isArray(parsed?.tips)
         ? parsed.tips
@@ -89,10 +112,64 @@ Reply ONLY with valid JSON:
     };
   } catch (error) {
     console.error("generateQuestionDraftCoachService error details:", error);
-
-    // FIXED: Throws a standard JavaScript error instead of an undefined class reference
     throw new Error(
       "AI draft suggestions are temporarily unavailable. Please try again later."
+    );
+  }
+};
+
+/**
+ * Whether a draft answer seems to address the question (relevance, not correctness).
+ * @param {{ questionTitle: string; questionContent: string; answerText: string }} param
+ * @returns {Promise<{ level: string; note: string }>}
+ */
+export const assessAnswerAgainstQuestionService = async ({
+  questionTitle,
+  questionContent,
+  answerText,
+}) => {
+  const userPrompt = `You review whether a forum ANSWER draft addresses the QUESTION (relevance and completeness of engagement - not whether the answer is factually correct).
+
+QUESTION TITLE:
+${questionTitle}
+
+QUESTION BODY:
+${questionContent}
+
+ANSWER DRAFT:
+${answerText}
+
+Reply with ONLY valid JSON (no markdown fences), exactly this shape:
+{
+  "level":"strong"|"partial"|"weak",
+  "note":"one short sentence"
+}
+
+Rules:
+- level: "strong" if the draft clearly engages with the question; "partial" if somewhat related but missing key parts of the ask; "weak" if mostly off-topic or too vague.
+- note: one sentence, plain language, no markdown, under 280 characters. Frame as fit/relevance, not grading.`;
+
+  try {
+    const raw = await fetchAssessAnswerResponse(userPrompt);
+    const parsed = parseJsonObjectFromGeminiText(raw);
+    const levelRaw = parsed?.level;
+    const noteRaw = parsed?.note;
+
+    const level =
+      levelRaw === 'strong' || levelRaw === 'partial' || levelRaw === 'weak'
+        ? levelRaw
+        : 'partial';
+
+    const note =
+      typeof noteRaw === 'string' && noteRaw.trim()
+        ? noteRaw.trim().slice(0, 280)
+        : 'Could not summarize fit; treat this as a partial match.';
+
+    return { level, note };
+  } catch (error) {
+    console.error('assessAnswerAgainstQuestionService:', error);
+    throw new ServiceUnavailableError(
+      'AI fit check is temporarily unavailable. Please try again later.',
     );
   }
 };
