@@ -4,12 +4,15 @@ import {
   createQuestionController,
   searchQuestionsSemanticController,
   getSimilarQuestionsController,
+  getSingleQuestionController,
 } from "../controller/question.controller.js";
 import {
   createQuestionValidation,
   searchQuestionsValidation,
   getSimilarQuestionsValidation,
+  getSingleQuestionValidation,
 } from "../validations/question.validation.js";
+
 
 const router = express.Router();
 
@@ -46,4 +49,12 @@ router.get(
   getSimilarQuestionsController,
 );
 
+
+//single question details
+router.get(
+  "/:questionHash",
+  authenticateUser,
+  getSingleQuestionValidation,
+  getSingleQuestionController,
+)
 export const questionRoutes = router;

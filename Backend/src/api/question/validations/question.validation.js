@@ -71,3 +71,15 @@ export const getSimilarQuestionsValidation = [
     .toFloat(),
   validationErrorHandler,
 ];
+
+// Validation for getting a single question details
+export const getSingleQuestionValidation = [
+  param("questionHash")
+    .notEmpty()
+    .withMessage("Question Hash is required")
+    .isString()
+    .withMessage("Question Hash must be a string")
+    .matches(/^[a-f0-9]{16}$/)
+    .withMessage("Question Hash must be a 16-character lowercase string"),
+  validationErrorHandler,
+];
