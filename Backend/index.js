@@ -36,7 +36,12 @@ const startServer = async () => {
     // Test database connection
     const connection = await db.getConnection();
 
-    console.log("Database connection established successfully.");
+    if (connection.config.host === "31.97.208.132") {
+      console.log("Successfully connected to 'Remote' Database.");
+    } else {
+      console.log("Successfully connected to 'Local' Database.");
+    }
+    // console.log("Database connection established successfully.");
     connection.release();
 
     app.listen(port, (err) => {
