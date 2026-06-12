@@ -232,12 +232,7 @@ async function retrieveReadyEmbeddings() {
  *
  * @returns {{ recommendThreshold: number, recommendK: number }}
  */
-export function getVectorConfig() {
-  return {
-    recommendThreshold: parseFloat(process.env.RECOMMEND_THRESHOLD) || 0.75,
-    recommendK: parseInt(process.env.RECOMMEND_K, 10) || 5,
-  };
-}
+
 
 /**
  * Finds questions semantically similar to the given source text.
