@@ -1,23 +1,22 @@
+// index.js
+import "dotenv/config"; // This MUST stay on line 1 to load environment variables first!
+
 import express from "express";
+import cors from "cors";
 import { db } from "./db/config.js";
 import { mainRouter } from "./src/api/routes.js";
 import { errorHandler } from "./src/middleware/error-handler.js";
-import cors from "cors";
 
 const app = express();
 const port = process.env.PORT || 3777;
 
 // Middleware
-// app.use(cors());
-
-
 app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
   }),
 );
-// app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -36,7 +35,12 @@ const startServer = async () => {
     // Test database connection
     const connection = await db.getConnection();
 
-    console.log("Database connection established successfully.");
+    if (connection.config.host === "31.97.208.132") {
+      console.log("Successfully connected to 'Remote' Database.");
+    } else {
+      console.log("Successfully connected to 'Local' Database.");
+    }
+    // console.log("Database connection established successfully.");
     connection.release();
 
     app.listen(port, (err) => {
