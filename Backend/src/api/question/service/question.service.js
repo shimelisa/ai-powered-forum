@@ -1,7 +1,4 @@
-import { 
-  BadRequestError,
-  NotFoundError
- } from "../../../utils/errors/index.js"; // Fixed extension
+import { BadRequestError, NotFoundError } from "../../../utils/errors/index.js"; // Fixed extension
 import { safeExecute } from "../../../../db/config.js"; // Fixed path step-back
 import crypto from "crypto";
 import {
@@ -157,10 +154,12 @@ export const getSimilarQuestionsService = async ({
   };
 };
 
-
 // Service for getting single question details
-export const getSingleQuestionService = async ({ questionHash, includeAnswers = true }) => {
-  const normalizedAnswerLimit = 100;//fixed limit for number of answers to retrieve
+export const getSingleQuestionService = async ({
+  questionHash,
+  includeAnswers = true,
+}) => {
+  const normalizedAnswerLimit = 100; //fixed limit for number of answers to retrieve
 
   const questionSql = `
   SELECT 
@@ -186,9 +185,9 @@ export const getSingleQuestionService = async ({ questionHash, includeAnswers = 
     throw new NotFoundError("Question not found");
   }
 
-   if (!includeAnswers) {
-     return { question: questionRows[0] };
-   }
+  if (!includeAnswers) {
+    return { question: questionRows[0] };
+  }
   const question = questionRows[0];
   const questionId = question.id;
 
@@ -208,7 +207,7 @@ export const getSingleQuestionService = async ({ questionHash, includeAnswers = 
   LIMIT ${normalizedAnswerLimit}
   `;
   const answers = await safeExecute(answersSql, [questionId]);
-  
+
   return {
     question: {
       id: question.id,
@@ -220,7 +219,7 @@ export const getSingleQuestionService = async ({ questionHash, includeAnswers = 
       author: {
         id: question.userId,
         firstName: question.firstName,
-        lastName: question.lastName
+        lastName: question.lastName,
       },
     },
     answers: answers.map((answer) => ({
@@ -231,7 +230,7 @@ export const getSingleQuestionService = async ({ questionHash, includeAnswers = 
       author: {
         id: answer.userId,
         firstName: answer.firstName,
-        lastName: answer.lastName
+        lastName: answer.lastName,
       },
     })),
     answersMeta: {
@@ -240,3 +239,42 @@ export const getSingleQuestionService = async ({ questionHash, includeAnswers = 
     },
   };
 };
+export const assessAnswerAgainstQuestionService = async ({
+  questionTitle,
+  questionContent,
+  answerText,
+}) => {
+  //  proper validation aligned with controller
+  if (!questionTitle || !questionContent || !answerText) {
+    throw new Error("Question and answer are required");
+  }
+
+  const normalizedQuestion = `${questionTitle} ${questionContent}`
+    .trim()
+    .toLowerCase();
+
+  const normalizedAnswer = answerText.trim().toLowerCase();
+
+  //  Basic relevance check (temporary fallback logic)
+  const keywordOverlap =
+    normalizedAnswer.includes(questionTitle.toLowerCase()) ||
+    normalizedAnswer.includes(questionContent.toLowerCase());
+
+  const isRelevant = keywordOverlap;
+
+  const score = isRelevant ? 100 : 0;
+
+  return {
+    level: score === 100 ? "strong" : "weak",
+    note: isRelevant
+      ? "Your answer is relevant to the question."
+      : "Your answer does not sufficiently address the question.",
+    score,
+    debug: {
+      questionTitle,
+      questionContent,
+      answerText,
+    },
+  };
+};
+

@@ -16,8 +16,8 @@ import {
   getSingleQuestionValidation,
 } from "../validations/question.validation.js";
 
-// import { assessAnswerAgainstQuestionValidation } from "../validations/question.validation.js";
-// import { assessAnswerAgainstQuestionController } from "../controller/question.controller.js";
+import { assessAnswerAgainstQuestionValidation } from "../validations/question.validation.js";
+import { assessAnswerAgainstQuestionController } from "../controller/question.controller.js";
 
 
 const router = express.Router();
@@ -79,11 +79,11 @@ router.get(
  * @desc AI relevance check for an answer draft vs the question
  * @access Private
  */
-// router.post(
-//   '/:questionHash/answer-fit',
-//   authenticateUser,
-//   assessAnswerAgainstQuestionValidation,
-//   assessAnswerAgainstQuestionController,
-// );
+router.post(
+  '/:questionHash/answer-fit',
+  authenticateUser,
+  assessAnswerAgainstQuestionValidation,
+  assessAnswerAgainstQuestionController,
+);
 
 export const questionRoutes = router;
