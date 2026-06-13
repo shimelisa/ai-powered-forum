@@ -1,0 +1,33 @@
+// Frontend/src/services/question.service.js
+// Temporary mock version – replace with real API calls later
+export const getSingleQuestion = async (questionHash) => {
+  // Mock data – remove when backend is ready
+  return {
+    question: {
+      id: 1,
+      title: "How to fix CORS error?",
+      content: "I have React on port 3000 and Express on 5000...",
+      author: { id: 2, firstName: "Test", lastName: "User" },
+      createdAt: new Date().toISOString(),
+    },
+    answers: [
+      {
+        id: 101,
+        content: "Install `cors` middleware and use `app.use(cors())`",
+        author: { firstName: "Helper", lastName: "Bot" },
+        createdAt: new Date().toISOString(),
+      },
+    ],
+    answersMeta: { total: 1 },
+  };
+};
+
+export const assessAnswerFit = async (questionHash, answerText) => {
+  // Mock response
+  return {
+    data: {
+      level: "strong",
+      note: "Your answer looks relevant and addresses the question well.",
+    },
+  };
+};
