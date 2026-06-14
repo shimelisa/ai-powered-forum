@@ -1,4 +1,4 @@
-import { apiClient } from '../core/api.client.js';
+import { apiClient } from "../core/api.client.js";
 
 /**
  * Creates a new question.
@@ -7,7 +7,7 @@ import { apiClient } from '../core/api.client.js';
  */
 async function createQuestion(formData) {
   try {
-    const response = await apiClient.post('/api/questions', formData);
+    const response = await apiClient.post("/api/questions", formData);
     return response.data;
   } catch (error) {
     throw handleQuestionError(error);
@@ -22,16 +22,16 @@ async function createQuestion(formData) {
 async function getQuestions(filters = {}) {
   try {
     const params = new URLSearchParams();
-    if (filters.search) params.append('search', filters.search);
-    if (filters.mine) params.append('mine', 'true');
-    if (filters.limit) params.append('limit', filters.limit);
-    if (filters.offset) params.append('offset', filters.offset);
+    if (filters.search) params.append("search", filters.search);
+    if (filters.mine) params.append("mine", "true");
+    if (filters.limit) params.append("limit", filters.limit);
+    if (filters.offset) params.append("offset", filters.offset);
 
-    const query = params.toString() ? `?${params.toString()}` : '';
+    const query = params.toString() ? `?${params.toString()}` : "";
     const response = await apiClient.get(`/api/questions${query}`);
     return response.data.data || response.data;
   } catch (error) {
-    throw handleQuestionError(error);
+    throw handleQuestionError(error, "fetch");
   }
 }
 
@@ -43,7 +43,7 @@ async function getQuestions(filters = {}) {
 async function generateQuestionDraftCoach(draftData) {
   try {
     const response = await apiClient.post(
-      '/api/questions/draft-coach',
+      "/api/questions/draft-coach",
       draftData,
     );
     return response.data;
@@ -73,7 +73,7 @@ async function getQuestionDetail(questionHash) {
  */
 async function createAnswer(answerData) {
   try {
-    const response = await apiClient.post('/api/answers', answerData);
+    const response = await apiClient.post("/api/answers", answerData);
     return response.data;
   } catch (error) {
     throw handleQuestionError(error);
@@ -89,11 +89,11 @@ async function createAnswer(answerData) {
 async function searchQuestionsSemantic(query, options = {}) {
   try {
     const params = new URLSearchParams();
-    params.append('query', query);
-    if (options.k) params.append('k', options.k);
-    if (options.threshold) params.append('threshold', options.threshold);
+    params.append("query", query);
+    if (options.k) params.append("k", options.k);
+    if (options.threshold) params.append("threshold", options.threshold);
 
-    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const queryString = params.toString() ? `?${params.toString()}` : "";
     const response = await apiClient.get(`/api/questions/search${queryString}`);
     return response.data.data || response.data;
   } catch (error) {
@@ -104,13 +104,16 @@ async function searchQuestionsSemantic(query, options = {}) {
 /**
  * Centralized error handler for question service requests.
  */
-function handleQuestionError(error) {
+function handleQuestionError(error, action = "fetch") {
   if (!error.response) {
-    if (error.code === 'ECONNABORTED') {
-      return new Error('Request timed out. Please try again.');
+    if (error.code === "ECONNABORTED") {
+      return new Error("Request timed out. Please try again.");
+    }
+    if (error.code === "ENOTFOUND") {
+      return new Error("Server address not found. Check your configuration.");
     }
     return new Error(
-      'Unable to connect to server. Please check your internet connection.',
+      "Unable to connect to server. Please check your internet connection.",
     );
   }
 
@@ -118,20 +121,29 @@ function handleQuestionError(error) {
   const backendMessage =
     error.response.data?.msg || error.response.data?.message;
 
-  switch (status) {
-    case 400:
-      return new Error(backendMessage || 'Invalid input data.');
-    case 401:
-      return new Error('Please log in to create a question.');
-    case 500:
-      return new Error(
-        'Something went wrong on our end. Please try again later.',
-      );
-    default:
-      return new Error(backendMessage || 'An unexpected error occurred.');
+  // For fetch operations, return early with simple message
+  if (action === "fetch") {
+    return new Error(backendMessage || "Failed to fetch questions.");
   }
-}
 
+  // For create operations, handle specific status codes
+  if (action === "create") {
+    switch (status) {
+      case 400:
+        return new Error(backendMessage || "Invalid input data.");
+      case 401:
+        return new Error("Please log in to create a question.");
+      case 500:
+        return new Error(
+          "Something went wrong on our end. Please try again later.",
+        );
+      default:
+        return new Error(backendMessage || "An unexpected error occurred.");
+    }
+  }
+
+  return new Error(backendMessage || "An error occurred.");
+}
 /**
  * Service for handling question-related requests.
  */

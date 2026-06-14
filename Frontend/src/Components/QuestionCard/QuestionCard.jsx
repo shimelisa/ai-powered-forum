@@ -1,98 +1,63 @@
+import { MessageSquare } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { timeAgo, isAuthoredByUser } from "../../lib/utils";
+import styles from "./QuestionCard.module.css";
+
 /**
- * QuestionCard: Reusable card component for displaying questions in listings
- * Used in Dashboard and MyQuestions pages
+ * QuestionCard: reusable row for a single question, used on the Dashboard
+ * and My Questions pages. Shows author initials, title, body preview,
+ * reply count, relative time, and a "YOURS" badge for the current user's posts.
  */
-
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import styles from './QuestionCard.module.css';
-
 export default function QuestionCard({ question }) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const handleClick = () => {
-    navigate(`/question/${question.questionHash}`);
-  };
+  const initials = `${question.author?.firstName?.[0] ?? ""}${
+    question.author?.lastName?.[0] ?? ""
+  }`.toUpperCase();
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+  const authorName = isAuthoredByUser(question, user)
+    ? "You"
+    : `${question.author?.firstName ?? ""} ${question.author?.lastName ?? ""}`.trim();
 
-    if (diffMins < 1) return 'just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    
-    return date.toLocaleDateString();
-  };
-
-  // Check if this is the current user's question
-  const isOwnQuestion = question.author?.id === user?.id;
-
-  // Get initials for avatar
-  const getInitials = () => {
-    const firstName = question.author?.firstName || '';
-    const lastName = question.author?.lastName || '';
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-  };
-
-  // Get avatar background color based on initials
-  const getAvatarColor = () => {
-    const colors = [
-      '#06b6d4', // cyan
-      '#8b5cf6', // violet
-      '#ec4899', // pink
-      '#f97316', // orange
-      '#10b981', // green
-      '#3b82f6', // blue
-    ];
-    const initials = getInitials();
-    const charCode = initials.charCodeAt(0) + (initials.charCodeAt(1) || 0);
-    return colors[charCode % colors.length];
-  };
+  const replyCount = question.replyCount ?? question.answersCount ?? 0;
 
   return (
-    <div 
-      className={`${styles.questionCard} ${isOwnQuestion ? styles.ownQuestion : ''}`} 
-      onClick={handleClick}
+    <article
+      className={styles.card}
+      onClick={() => navigate(`/question/${question.id}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          navigate(`/question/${question.id}`);
+        }
+      }}
     >
-      {/* Avatar */}
-      <div 
-        className={styles.avatar}
-        style={{ backgroundColor: getAvatarColor() }}
-      >
-        {getInitials()}
-      </div>
+      <div className={styles.card__avatar}>{initials || "?"}</div>
 
-      {/* Content */}
-      <div className={styles.cardContent}>
-        {/* Header with YOURS badge */}
-        <div className={styles.cardHeader}>
-          <h3 className={styles.cardTitle}>{question.title}</h3>
-          {isOwnQuestion && (
-            <span className={styles.yoursBadge}>YOURS</span>
+      <div className={styles.card__body}>
+        <div className={styles.card__header}>
+          <h4 className={styles.card__title}>{question.title}</h4>
+          {isAuthoredByUser(question, user) && (
+            <span className={styles.card__badge}>Yours</span>
           )}
         </div>
 
-        {/* Question preview */}
-        <p className={styles.cardPreview}>{question.content}</p>
+        <p className={styles.card__description}>{question.description}</p>
 
-        {/* Footer with replies and time */}
-        <div className={styles.cardFooter}>
-          <span className={styles.replies}>
-            {question.answerCount || 0} {question.answerCount === 1 ? 'reply' : 'replies'}
+        <div className={styles.card__meta}>
+          <span className={styles.card__metaItem}>
+            <MessageSquare size={14} />
+            {replyCount} {replyCount === 1 ? "reply" : "replies"}
           </span>
-          <span className={styles.dot}>·</span>
-          <span className={styles.timestamp}>
-            {formatDate(question.createdAt)}
+          <span className={styles.card__metaItem}>
+            {timeAgo(question.createdAt)} by {authorName}
           </span>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
