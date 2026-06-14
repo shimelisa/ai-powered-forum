@@ -3,11 +3,11 @@
  * Add new `<Route>` entries here, then wire navigation in `Sidebar.jsx` and
  * `Layout.jsx` (`getTitle` / `getSubtitle`) so the shell stays in sync.
  */
-import React from "react";
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
-import Layout from "./components/Layout/Layout";
-import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+import Layout from "./Components/Layout/Layout";
+import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute";
 import Auth from "./pages/Auth/Auth";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Landing from "./pages/Landing/Landing";
@@ -22,7 +22,6 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Landing />} />
-
           <Route path="/auth" element={<Auth />} />
 
           {/* Protected routes with Layout */}
