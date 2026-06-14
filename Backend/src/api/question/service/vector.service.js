@@ -28,7 +28,7 @@ export const normalizeQuestionText = ({ title }) => {
   return normalizeWhitespace(`${title || ""}`.normalize("NFKC").toLowerCase());
 };
 
-// Extracted floating check into an exported utility function for your cosine calculations
+
 export function compareVectorLengths(vectorA, vectorB) {
   if (vectorA.length !== vectorB.length) {
     throw new BadRequestError(

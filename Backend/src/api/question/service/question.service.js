@@ -8,7 +8,7 @@ import {
   findSimilarQuestionsByText,
   getVectorConfig,
   findSimilarQuestionsByQuestionId,
-} from "./vector.service.js"; // Combined and added missing function
+} from "./vector.service.js";
 
 export const createQuestionWithVectorService = async (payload) => {
   const { userId, title, content } = payload;
