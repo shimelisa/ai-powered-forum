@@ -228,13 +228,6 @@ async function retrieveReadyEmbeddings() {
 }
 
 /**
- * Returns the resolved vector search configuration from environment variables.
- *
- * @returns {{ recommendThreshold: number, recommendK: number }}
- */
-
-
-/**
  * Finds questions semantically similar to the given source text.
  *
  * Steps:

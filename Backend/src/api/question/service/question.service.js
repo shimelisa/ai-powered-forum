@@ -80,14 +80,84 @@ export const createQuestionWithVectorService = async (payload) => {
 };
 
 /**
- * Performs semantic search over questions.
- *
- * Delegates embedding, similarity scoring, and DB lookup entirely to
- * vector.service — this layer only handles parameter normalisation
- * and shaping the final API response envelope.
- *
+ * Retrieves questions with optional search/mine filters.
+ * @param {{ search?: string, mine?: boolean, userId?: number }} params Query parameters.
+ * @returns {Promise<{ data: Object[], meta: Object }>} Promise resolving to question data and metadata.
+ */
+export const getQuestionsService = async ({ search, mine, userId }) => {
+  let sql = `
+  SELECT
+    q.question_id AS id,
+    q.question_hash AS questionHash,
+    q.title,
+    q.content,
+    q.created_at AS createdAt,
+    q.updated_at AS updatedAt,
+    u.user_id AS userId,
+    u.first_name AS firstName,
+    u.last_name AS lastName,
+    COUNT(DISTINCT a.answer_id) AS answerCount
+  FROM questions q
+  JOIN users u ON u.user_id = q.user_id
+  LEFT JOIN answers a ON a.question_id = q.question_id
+  `;
+
+  const conditions = [];
+  const params = [];
+
+  if (search) {
+    conditions.push("(q.title LIKE ? OR q.content LIKE ?)");
+    params.push(`%${search}%`, `%${search}%`);
+  }
+
+  if (mine && userId) {
+    conditions.push("q.user_id = ?");
+    params.push(userId);
+  }
+
+  if (conditions.length > 0) {
+    sql += ` WHERE ${conditions.join(" AND ")}`;
+  }
+
+  sql += `
+  GROUP BY q.question_id, u.user_id
+  ORDER BY q.created_at DESC
+  `;
+
+  const rows = await safeExecute(sql, params);
+
+  const data = rows.map((row) => ({
+    id: row.id,
+    questionHash: row.questionHash,
+    title: row.title,
+    content: row.content,
+    answerCount: Number(row.answerCount),
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    author: {
+      id: row.userId,
+      firstName: row.firstName,
+      lastName: row.lastName,
+    },
+  }));
+
+  return {
+    data,
+    meta: {
+      limit: 100,
+      total: data.length,
+      sortBy: "newest",
+      sortOrder: "desc",
+    },
+  };
+};
+
+/**
+ * Performs semantic search over questions. 
+ * Delegates embedding, similarity scoring, and DB lookup entirely to vector.service
+ * 
  * @param {{ query: string, k?: number, threshold?: number }} params
- * @returns {Promise<{ data: Object[], meta: Object }>}
+ * @returns {Promise<{ data: Object[], meta: Object }>} Promise resolving to question data and metadata.
  */
 
 export const searchQuestionsSemanticService = async ({
@@ -117,6 +187,11 @@ export const searchQuestionsSemanticService = async ({
   };
 };
 
+/**
+ * Retrieves similar questions based on a given question hash.
+ * @param {{ questionHash: string, k?: number, threshold?: number }} params
+ * @returns {Promise<{ data: Object[], meta: Object }>} Promise resolving to question data and metadata.
+ */
 export const getSimilarQuestionsService = async ({
   questionHash,
   k = 5,
@@ -277,4 +352,3 @@ export const assessAnswerAgainstQuestionService = async ({
     },
   };
 };
-

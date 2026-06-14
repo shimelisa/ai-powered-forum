@@ -1,5 +1,6 @@
 import {
   createQuestionWithVectorService,
+  getQuestionsService,
   getSimilarQuestionsService,
   getSingleQuestionService,
   searchQuestionsSemanticService,
@@ -27,6 +28,33 @@ export const createQuestionController = async (req, res, next) => {
         content: result.question.content,
         userId: result.question.userId,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/questions
+ * 
+ * List questions with optional search and mine filters.
+ */
+export const getQuestionsController = async (req, res, next) => {
+  try {
+    const { search, mine } = req.query;
+
+    const filters = {
+      search,
+      mine,
+      userId: req.user.id,
+    };
+
+    const result = await getQuestionsService(filters);
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Questions fetched successfully.",
+      ...result,
     });
   } catch (error) {
     next(error);

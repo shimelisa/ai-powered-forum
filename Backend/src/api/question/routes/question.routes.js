@@ -2,7 +2,8 @@
 import express from "express";
 import { authenticateUser } from "../../../middleware/authentication.js";
 import { 
-  createQuestionController, 
+  createQuestionController,
+  getQuestionsController,
   searchQuestionsSemanticController,
   generateQuestionDraftCoachController,
   getSimilarQuestionsController,
@@ -11,6 +12,7 @@ import {
 import { 
   createQuestionValidation, 
   searchQuestionsValidation,
+  getQuestionsValidation,
   generateQuestionDraftCoachValidation,
   getSimilarQuestionsValidation,
   getSingleQuestionValidation,
@@ -22,12 +24,28 @@ import { assessAnswerAgainstQuestionController } from "../controller/question.co
 
 const router = express.Router();
 
-// Create a new question
+/**
+ * @route POST/api/questions
+ * @desc Post a new question
+ * @access Protected (Bearer token required)
+ */
 router.post(
   "/",
   authenticateUser,
   createQuestionValidation,
   createQuestionController,
+);
+
+/**
+ * @route GET/api/questions
+ * @desc List questions with optional search and mine filters.
+ * @access Protected (Bearer token required)
+ */
+router.get(
+  "/",
+  authenticateUser,
+  getQuestionsValidation,
+  getQuestionsController,
 );
 
 /**
@@ -86,4 +104,4 @@ router.post(
   assessAnswerAgainstQuestionController,
 );
 
-export const questionRoutes = router;
+export default router;
