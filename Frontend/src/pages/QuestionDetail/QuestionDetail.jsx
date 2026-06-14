@@ -44,9 +44,12 @@ const QuestionDetail = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getQuestionDetail(questionHash);
-        setQuestion(data.question);
-        setAnswers(data.answers);
+
+
+        const response = await getQuestionDetail(questionHash);
+        setQuestion(response.question);
+        setAnswers(response.answers || []);
+
         setError(null);
       } catch (err) {
         console.error(err);
