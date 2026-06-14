@@ -14,6 +14,7 @@ import Landing from "./pages/Landing/Landing";
 import QuestionDetail from "./pages/QuestionDetail/QuestionDetail";
 import PostQuestion from "./pages/PostQuestion/PostQuestion";
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -55,7 +56,7 @@ function App() {
               path="/question/:id"
               element={
                 <ProtectedRoute>
-                  <h1>Question Detail Page</h1>
+                  <QuestionDetail/>
                 </ProtectedRoute>
               }
             />
