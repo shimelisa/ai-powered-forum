@@ -1,11 +1,7 @@
-import  { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-// Fixed relative path resolving directly into your src/services folder
-import {
-  // getQuestions,
-  // searchQuestionsSemantic,
-} from "../../services/question.service";
+import { apiClient } from "../../services/core/api.client";
 import "./Dashboard.module.css";
 
 export default function Dashboard() {
@@ -17,7 +13,7 @@ export default function Dashboard() {
   const [questions, setQuestions] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMode, setSearchMode] = useState("keyword"); // 'keyword' | 'semantic'
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Quick snapshot metric figures matching dashboard layouts
@@ -84,22 +80,27 @@ export default function Dashboard() {
 
   // --- API Request Interceptor ---
   const fetchDashboardFeed = useCallback(
-    async (query = "", mode = searchMode) => {
-      setIsLoading(true);
-      setError(null);
+    async (query = "", mode = searchMode, skipInitialSync = false) => {
+      if (!skipInitialSync) {
+        setIsLoading(true);
+        setError(null);
+      }
       try {
-        let data = [];
+        let activeDataset = [];
         const cleanQuery = query.trim();
 
         if (!cleanQuery) {
-          data = await getQuestions({});
-        } else if (mode === "keyword") {
-          data = await getQuestions({ search: cleanQuery });
-        } else if (mode === "semantic") {
-          data = await searchQuestionsSemantic(cleanQuery);
+          const response = await apiClient.get("/questions/search", {
+            params: { query: " ", k: 10, threshold: 0.3 },
+          });
+          activeDataset = response.data?.data || [];
+        } else if (mode === "keyword" || mode === "semantic") {
+          const response = await apiClient.get("/questions/search", {
+            params: { query: cleanQuery, k: 10, threshold: 0.3 },
+          });
+          activeDataset = response.data?.data || [];
         }
 
-        const activeDataset = Array.isArray(data) ? data : [];
         setQuestions(activeDataset);
 
         // Recalculate metrics snapshot summary boxes dynamically
@@ -131,8 +132,8 @@ export default function Dashboard() {
 
   // Initial mount trigger
   useEffect(() => {
-    fetchDashboardFeed();
-  }, [fetchDashboardFeed]);
+    fetchDashboardFeed("", searchMode, true);
+  }, [fetchDashboardFeed, searchMode]);
 
   // Handle Search input change with 400ms debounce
   const handleInputChange = (e) => {
