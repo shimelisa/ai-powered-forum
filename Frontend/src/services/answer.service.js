@@ -1,10 +1,13 @@
 // Frontend/src/services/answer.service.js
-export const postAnswer = async (questionId, content) => {
-  // Mock response
-  return {
-    id: Date.now(),
-    content: content,
-    author: { firstName: "You", lastName: "" },
-    createdAt: new Date().toISOString(),
-  };
+import { apiClient } from "./core/api.client";
+
+/**
+ * Post a new answer to a question
+ * POST /api/answers
+ */
+// answer.service.js
+
+export const postAnswer = async (payload) => {
+  const response = await apiClient.post("/api/answers", payload);
+  return response.data;
 };

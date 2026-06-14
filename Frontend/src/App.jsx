@@ -52,10 +52,10 @@ function App() {
               }
             />
             <Route
-              path="/question/:id"
+              path="/question/:questionHash"
               element={
                 <ProtectedRoute>
-                  <QuestionDetail/>
+                  <QuestionDetail />
                 </ProtectedRoute>
               }
             />

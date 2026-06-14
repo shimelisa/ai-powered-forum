@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import { getSingleQuestion, assessAnswerFit } from '../../services/question.service';
+import {
+  getQuestionDetail,
+  assessAnswerFit,
+} from "../../services/question.service";
 import { postAnswer } from '../../services/answer.service';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from './QuestionDetail.module.css';
+
+
+// import { questionService, getQuestionDetail } from "../../services/questions/question.service";
+// // import {} getQuestionDetail from "../../services/question.service"
 
 const QuestionDetail = () => {
   const { questionHash } = useParams();
@@ -37,7 +44,7 @@ const QuestionDetail = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getSingleQuestion(questionHash);
+        const data = await getQuestionDetail(questionHash);
         setQuestion(data.question);
         setAnswers(data.answers);
         setError(null);
@@ -55,35 +62,56 @@ const QuestionDetail = () => {
   }, [questionHash, navigate]);
 
   // Handle answer submission
-  const handlePostAnswer = async (e) => {
-    e.preventDefault();
-    if (answerText.trim().length < 20) {
-      setPostError('Answer must be at least 20 characters long.');
-      return;
-    }
-    if (isOwnQuestion) {
-      setPostError('You cannot answer your own question.');
-      return;
-    }
+const handlePostAnswer = async (e) => {
+  e.preventDefault();
+
+  if (answerText.trim().length < 20) {
+    setPostError("Answer must be at least 20 characters long.");
+    return;
+  }
+
+  if (isOwnQuestion) {
+    setPostError("You cannot answer your own question.");
+    return;
+  }
+
+  try {
     setSubmitting(true);
     setPostError(null);
-    try {
-      const newAnswer = await postAnswer(question.id, answerText);
-      // Append new answer to the list
-      setAnswers(prev => [...prev, {
-        id: newAnswer.id,
-        content: newAnswer.content,
-        createdAt: newAnswer.createdAt,
-        author: newAnswer.author,
-      }]);
-      setAnswerText('');
-      setFitResult(null); // clear AI feedback after successful post
-    } catch (err) {
-      setPostError(err.response?.data?.message || 'Failed to post answer');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+
+   const response = await postAnswer({
+     questionId: question.id,
+     content: answerText.trim(),
+   });
+
+   // Backend returns array of all answers, get the newly added one (last in array)
+   const answersArray = response.data;
+   const answer = answersArray[answersArray.length - 1];
+
+   const newAnswer = {
+     id: answer.id,
+     content: answer.content,
+     createdAt: answer.createdAt,
+     author: answer.author || {
+       firstName: "Unknown",
+       lastName: "",
+     },
+   };
+
+   setAnswers((prev) => [...prev, newAnswer]);
+
+
+    setAnswers((prev) => [...prev, newAnswer]);
+
+    setAnswerText("");
+    setFitResult(null);
+  } catch (err) {
+    console.log(err.response?.data);
+    setPostError(err.response?.data?.message || "Failed to post answer");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   // AI Answer Fit check
   const handleCheckFit = async () => {

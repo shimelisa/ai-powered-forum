@@ -57,14 +57,14 @@ async function generateQuestionDraftCoach(draftData) {
  * @param {String} questionHash - The question hash
  * @returns {Promise} Question and answers data
  */
-async function getQuestionDetail(questionHash) {
+export const getQuestionDetail = async (questionHash) => {
   try {
     const response = await apiClient.get(`/api/questions/${questionHash}`);
     return response.data.data || response.data;
   } catch (error) {
     throw handleQuestionError(error);
   }
-}
+};
 
 /**
  * Creates a new answer to a question.
@@ -139,7 +139,9 @@ export const questionService = {
   createQuestion,
   getQuestions,
   generateQuestionDraftCoach,
-  getQuestionDetail,
+  // getQuestionDetail,
   createAnswer,
   searchQuestionsSemantic,
 };
+
+// export default getQuestionDetail;
