@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Sparkles,
+  Send,
+} from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import {
   getQuestionDetail,
@@ -103,9 +107,6 @@ const handlePostAnswer = async (e) => {
 
    setAnswers((prev) => [...prev, newAnswer]);
 
-
-    setAnswers((prev) => [...prev, newAnswer]);
-
     setAnswerText("");
     setFitResult(null);
   } catch (err) {
@@ -150,7 +151,7 @@ const handlePostAnswer = async (e) => {
     <div className={styles.container}>
       {/* Question Section */}
       <article className={styles.question}>
-        <h1 className={styles.title}>{question.title}</h1>
+        <h4 className={styles.title}>{question.title}</h4>
         <div className={styles.meta}>
           <span className={styles.author}>
             Asked by {question.author.firstName} {question.author.lastName}
@@ -166,7 +167,9 @@ const handlePostAnswer = async (e) => {
 
       {/* Answers Section */}
       <section className={styles.answersSection}>
-        <h2>{answers.length} {answers.length === 1 ? 'Answer' : 'Answers'}</h2>
+        <h4>
+          {answers.length} {answers.length === 1 ? "Answer" : "Answers"}
+        </h4>
         <div className={styles.answersList}>
           {answers.map((answer) => (
             <div key={answer.id} className={styles.answerCard}>
@@ -206,14 +209,16 @@ const handlePostAnswer = async (e) => {
                 onClick={handleCheckFit}
                 disabled={fitLoading || submitting}
               >
-                {fitLoading ? 'Evaluating...' : 'Check Answer Fit'}
+                <Sparkles size={16} aria-hidden />
+                {fitLoading ? " Evaluating..." : "  Check draft Fit"}
               </button>
               <button
                 type="submit"
                 className={styles.submitButton}
                 disabled={submitting}
               >
-                {submitting ? 'Posting...' : 'Post Answer'}
+                <Send size={14} aria-hidden />
+                {submitting ? " Posting..." : "   Post Answer"}
               </button>
             </div>
           </form>
@@ -222,7 +227,7 @@ const handlePostAnswer = async (e) => {
           {/* AI Fit Feedback Panel */}
           {fitResult && (
             <div className={`${styles.fitPanel} ${styles[fitResult.level]}`}>
-              <h4>AI Evaluation: {fitResult.level.toUpperCase()}</h4>
+              <h6>AI Evaluation: {fitResult.level.toUpperCase()}</h6>
               <p>{fitResult.note}</p>
             </div>
           )}
@@ -232,14 +237,16 @@ const handlePostAnswer = async (e) => {
       {/* Show message if user is the question author */}
       {user && isOwnQuestion && (
         <div className={styles.ownQuestionNote}>
-          You cannot answer your own question. You can edit it or wait for others to answer.
+          You cannot answer your own question. You can edit it or wait for
+          others to answer.
         </div>
       )}
 
       {/* Prompt to login if not authenticated */}
       {!user && (
         <div className={styles.loginPrompt}>
-          Please <button onClick={() => navigate('/login')}>log in</button> to post an answer.
+          Please <button onClick={() => navigate("/login")}>log in</button> to
+          post an answer.
         </div>
       )}
     </div>

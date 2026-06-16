@@ -21,7 +21,7 @@ export default function QuestionCard({ question }) {
     ? "You"
     : `${question.author?.firstName ?? ""} ${question.author?.lastName ?? ""}`.trim();
 
-  const replyCount = question.replyCount ?? question.answersCount ?? 0;
+  const replyCount = question.replyCount ?? question.answerCount ?? 0;
 
   return (
     <article
