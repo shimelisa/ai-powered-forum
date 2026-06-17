@@ -1,34 +1,27 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Sparkles,
-  Send,
-} from "lucide-react";
-import ReactMarkdown from 'react-markdown';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Sparkles, Send } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import {
   getQuestionDetail,
   assessAnswerFit,
-} from "../../services/question.service";
-import { postAnswer } from '../../services/answer.service';
-import { useAuth } from '../../contexts/AuthContext';
-import styles from './QuestionDetail.module.css';
-
-
-// import { questionService, getQuestionDetail } from "../../services/questions/question.service";
-// // import {} getQuestionDetail from "../../services/question.service"
+} from "../../services/questions/question.service";
+import { postAnswer } from "../../services/answers/answer.service";
+import { useAuth } from "../../contexts/AuthContext";
+import styles from "./QuestionDetail.module.css";
 
 const QuestionDetail = () => {
   const { questionHash } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-// State variables
+  // State variables
   const [loading, setLoading] = useState(true);
   // Question will be stored as { id, title, content, createdAt, author: { id, firstName, lastName } }
   const [question, setQuestion] = useState(null);
   // Answers will be stored as an array of { id, content, createdAt, author: { id, firstName, lastName } }
   const [answers, setAnswers] = useState([]);
   // For posting new answer
-  const [answerText, setAnswerText] = useState('');
+  const [answerText, setAnswerText] = useState("");
   // For AI fit check
   const [submitting, setSubmitting] = useState(false);
   // AI fit check loading state
@@ -49,7 +42,6 @@ const QuestionDetail = () => {
       try {
         setLoading(true);
 
-
         const response = await getQuestionDetail(questionHash);
         setQuestion(response.question);
         setAnswers(response.answers || []);
@@ -57,9 +49,9 @@ const QuestionDetail = () => {
         setError(null);
       } catch (err) {
         console.error(err);
-        setError(err.response?.data?.message || 'Failed to load question');
+        setError(err.response?.data?.message || "Failed to load question");
         if (err.response?.status === 404) {
-          navigate('/not-found', { replace: true });
+          navigate("/not-found", { replace: true });
         }
       } finally {
         setLoading(false);
@@ -69,62 +61,62 @@ const QuestionDetail = () => {
   }, [questionHash, navigate]);
 
   // Handle answer submission
-const handlePostAnswer = async (e) => {
-  e.preventDefault();
+  const handlePostAnswer = async (e) => {
+    e.preventDefault();
 
-  if (answerText.trim().length < 20) {
-    setPostError("Answer must be at least 20 characters long.");
-    return;
-  }
+    if (answerText.trim().length < 20) {
+      setPostError("Answer must be at least 20 characters long.");
+      return;
+    }
 
-  if (isOwnQuestion) {
-    setPostError("You cannot answer your own question.");
-    return;
-  }
+    if (isOwnQuestion) {
+      setPostError("You cannot answer your own question.");
+      return;
+    }
 
-  try {
-    setSubmitting(true);
-    setPostError(null);
+    try {
+      setSubmitting(true);
+      setPostError(null);
 
-   const response = await postAnswer({
-     questionId: question.id,
-     content: answerText.trim(),
-   });
+      const response = await postAnswer({
+        questionId: question.id,
+        content: answerText.trim(),
+      });
 
-   // Backend returns array of all answers, get the newly added one (last in array)
-   const answersArray = response.data;
-   const answer = answersArray[answersArray.length - 1];
+      // Backend returns array of all answers, get the newly added one (last in array)
+      const answersArray = response.data;
+      const answer = answersArray[answersArray.length - 1];
 
-   const newAnswer = {
-     id: answer.id,
-     content: answer.content,
-     createdAt: answer.createdAt,
-     author: answer.author || {
-       firstName: "Unknown",
-       lastName: "",
-     },
-   };
+      const newAnswer = {
+        id: answer.id,
+        content: answer.content,
+        createdAt: answer.createdAt,
+        author: answer.author || {
+          firstName: "Unknown",
+          lastName: "",
+        },
+      };
 
-   setAnswers((prev) => [...prev, newAnswer]);
+      setAnswers((prev) => [...prev, newAnswer]);
 
-    setAnswerText("");
-    setFitResult(null);
-  } catch (err) {
-    console.log(err.response?.data);
-    setPostError(err.response?.data?.message || "Failed to post answer");
-  } finally {
-    setSubmitting(false);
-  }
-};
+      setAnswerText("");
+      setFitResult(null);
+    } catch (err) {
+      console.log(err.response?.data);
+      setPostError(err.response?.data?.message || "Failed to post answer");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // AI Answer Fit check
   const handleCheckFit = async () => {
     if (answerText.trim().length < 20) {
-      setPostError('Answer must be at least 20 characters to evaluate.');
+      setPostError("Answer must be at least 20 characters to evaluate.");
       return;
     }
     if (isOwnQuestion) {
-      setPostError('You cannot answer your own question.');
+      setPostError("You cannot answer your own question.");
       return;
     }
     setFitLoading(true);
@@ -133,12 +125,12 @@ const handlePostAnswer = async (e) => {
       const result = await assessAnswerFit(questionHash, answerText);
       setFitResult(result.data); // { level, note }
     } catch (err) {
-      setPostError(err.response?.data?.message || 'AI evaluation failed');
+      setPostError(err.response?.data?.message || "AI evaluation failed");
     } finally {
       setFitLoading(false);
     }
   };
-// Render logic
+  // Render logic
   if (loading) {
     return <div className={styles.loading}>Loading question...</div>;
   }

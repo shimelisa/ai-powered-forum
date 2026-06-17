@@ -60,7 +60,7 @@ async function generateQuestionDraftCoach(draftData) {
 export const getQuestionDetail = async (questionHash) => {
   try {
     const response = await apiClient.get(`/api/questions/${questionHash}`);
-    return response.data.data || response.data;
+    return response.data || response.data.data;
   } catch (error) {
     throw handleQuestionError(error);
   }
@@ -79,6 +79,21 @@ async function createAnswer(answerData) {
     throw handleQuestionError(error);
   }
 }
+
+export const assessAnswerFit = async (questionHash, answerText) => {
+  try {
+    const response = await apiClient.post(
+      `/api/questions/${questionHash}/answer-fit`,
+      {
+        answerText,
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    throw handleQuestionError(error);
+  }
+};
 
 /**
  * Performs semantic (AI-powered) search over questions.

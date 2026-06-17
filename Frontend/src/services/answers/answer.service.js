@@ -1,5 +1,5 @@
 // Frontend/src/services/answer.service.js
-import { apiClient } from "./core/api.client";
+import { apiClient } from "../core/api.client";
 
 /**
  * Post a new answer to a question
