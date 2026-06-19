@@ -8,16 +8,23 @@ if (!JWT_SECRET) {
 }
 
 export const authenticateUser = (req, res, next) => {
+  console.log('🔐 Authentication middleware called');
+  console.log('Headers:', req.headers);
+  
   const authHeader = req.headers.authorization;
+  console.log('Auth Header:', authHeader);
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.log('❌ No Bearer token found');
     throw new UnauthenticatedError("Authentication invalid");
   }
 
   const token = authHeader.split(" ")[1];
+  console.log('Token:', token);
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
+    console.log('✅ Token verified:', payload);
     req.user = {
       id: payload.id,
       firstName: payload.firstName,
@@ -25,6 +32,7 @@ export const authenticateUser = (req, res, next) => {
     };
     next();
   } catch (error) {
+    console.log('❌ Token verification failed:', error.message);
     throw new UnauthenticatedError("Authentication invalid");
   }
 };

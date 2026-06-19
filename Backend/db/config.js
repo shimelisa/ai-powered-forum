@@ -13,7 +13,7 @@ export const db = mysql.createPool({
   user: process.env.DB_USER || "root",
   // Double-check your .env: usually this variable is DB_PASSWORD, not DB_PASS
   password: process.env.DB_PASS || "", 
-  database: process.env.DB_NAME || "evangadiforum",
+  database: process.env.DB_NAME || "evangadi_forum",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

@@ -14,7 +14,7 @@ import Landing from "./pages/Landing/Landing";
 import QuestionDetail from "./pages/QuestionDetail/QuestionDetail";
 import PostQuestion from "./pages/PostQuestion/PostQuestion";
 import MyQuestions from "./pages/MyQuestions/MyQuestions";
-import RagDocuments from "./pages/RagDocuments/RagDocuments";
+// import RagDocuments from "./pages/RagDocuments/RagDocuments";
 
 function App() {
   return (
@@ -60,14 +60,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
+            {/* <Route
               path="/rag-documents"
               element={
                 <ProtectedRoute>
                   <RagDocuments/>
                 </ProtectedRoute>
               }
-            />
+            /> */}
           </Route>
 
           {/* Catch-all redirect */}
