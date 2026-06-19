@@ -171,4 +171,14 @@ export const questionService = {
   searchQuestionsSemantic,
 };
 
-// export default getQuestionDetail;
+/**
+ * Fetch related questions for a given question hash.
+ * GET /api/questions/:questionHash/related
+ *
+ * If your backend doesn't have this endpoint yet, the component
+ * handles the failure gracefully (shows empty sidebar).
+ */
+export const getRelatedQuestions = async (questionHash) => {
+  const response = await apiClient.get(`/api/questions/${questionHash}/similar`);
+  return response.data;
+};

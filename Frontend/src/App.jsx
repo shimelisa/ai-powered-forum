@@ -14,7 +14,7 @@ import Landing from "./pages/Landing/Landing";
 import QuestionDetail from "./pages/QuestionDetail/QuestionDetail";
 import PostQuestion from "./pages/PostQuestion/PostQuestion";
 import MyQuestions from "./pages/MyQuestions/MyQuestions";
-
+import RagDocuments from "./pages/RagDocuments/RagDocuments";
 
 function App() {
   return (
@@ -64,7 +64,7 @@ function App() {
               path="/rag-documents"
               element={
                 <ProtectedRoute>
-                  <h1>RAG Documents Page</h1>
+                  <RagDocuments/>
                 </ProtectedRoute>
               }
             />

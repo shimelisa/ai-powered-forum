@@ -1,5 +1,5 @@
 /**
- * Dashboard: Main page displaying all community questions with search and filtering
+ * Dashboard: Main page displaying all community questions with search and filtering.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -14,39 +14,32 @@ export default function Dashboard() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
-  // State management
-  const [questions, setQuestions] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [stats, setStats] = useState({
+
+  const [questions, setQuestions]   = useState([]);
+  const [isLoading, setIsLoading]   = useState(true);
+  const [error, setError]           = useState(null);
+  const [stats, setStats]           = useState({
     totalQuestions: 0,
-    totalReplies: 0,
-    unanswered: 0,
-    yours: 0
+    totalReplies:   0,
+    unanswered:     0,
+    yours:          0,
   });
 
-  // Fetch questions based on search parameters
+  /* ── Fetch all questions ─────────────────────────────────────────────────── */
   const fetchQuestions = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const response = await questionService.getQuestions({});
+
+      const response      = await questionService.getQuestions({});
       const questionsList = response || [];
       setQuestions(questionsList);
-      
-      // Calculate stats
+
       const totalReplies = questionsList.reduce((sum, q) => sum + (q.answerCount || 0), 0);
-      const unanswered = questionsList.filter(q => (q.answerCount || 0) === 0).length;
-      const yours = questionsList.filter(q => q.author?.id === user?.id).length;
-      
-      setStats({
-        totalQuestions: questionsList.length,
-        totalReplies,
-        unanswered,
-        yours
-      });
+      const unanswered   = questionsList.filter(q => (q.answerCount || 0) === 0).length;
+      const yours        = questionsList.filter(q => q.author?.id === user?.id).length;
+
+      setStats({ totalQuestions: questionsList.length, totalReplies, unanswered, yours });
     } catch (err) {
       setError(err.message || 'Failed to load questions');
     } finally {
@@ -54,30 +47,21 @@ export default function Dashboard() {
     }
   }, [user?.id]);
 
-  // Perform search based on URL parameters
+  /* ── Search ──────────────────────────────────────────────────────────────── */
   const performSearch = useCallback(async (query, mode) => {
-    if (!query.trim()) {
-      fetchQuestions();
-      return;
-    }
+    if (!query.trim()) { fetchQuestions(); return; }
 
     setIsLoading(true);
     setError(null);
 
     try {
       let response;
-
       if (mode === 'keyword') {
-        // Keyword search
-        response = await questionService.getQuestions({
-          search: query,
-        });
-        setQuestions(response || []);
+        response = await questionService.getQuestions({ search: query });
       } else {
-        // Semantic search
         response = await questionService.searchQuestionsSemantic(query);
-        setQuestions(response || []);
       }
+      setQuestions(response || []);
     } catch (err) {
       setError(err.message || 'Search failed');
       setQuestions([]);
@@ -86,46 +70,40 @@ export default function Dashboard() {
     }
   }, [fetchQuestions]);
 
-  // Watch for URL parameter changes and perform search directly
+  /* ── React to URL param changes ──────────────────────────────────────────── */
   useEffect(() => {
-    const keywordQuery = searchParams.get('q');
+    const keywordQuery  = searchParams.get('q');
     const semanticQuery = searchParams.get('semantic');
 
-    if (semanticQuery) {
-      // Semantic search from URL
-      performSearch(semanticQuery, 'semantic');
-    } else if (keywordQuery) {
-      // Keyword search from URL
-      performSearch(keywordQuery, 'keyword');
-    } else {
-      // No search, show all questions
-      fetchQuestions();
-    }
+    if (semanticQuery)     performSearch(semanticQuery, 'semantic');
+    else if (keywordQuery) performSearch(keywordQuery, 'keyword');
+    else                   fetchQuestions();
   }, [searchParams, performSearch, fetchQuestions]);
 
-  const handleClearSearch = () => {
-    navigate('/dashboard');
-  };
+  const handleClearSearch = () => navigate('/dashboard');
 
+  const activeQuery = searchParams.get('q') || searchParams.get('semantic');
+
+  /* ── Render ──────────────────────────────────────────────────────────────── */
   return (
     <div className={styles.dashboard}>
-      {/* Hero Section */}
+
+      {/* Hero ──────────────────────────────────────────────────────────────── */}
       <div className={styles.heroSection}>
-        <span className={styles.breadcrumb}>FORUM HOME</span>
+        <span className={styles.breadcrumb}>Forum Home</span>
         <h1 className={styles.heroTitle}>
           Good to see you, {user?.firstName || 'there'}.
         </h1>
         <p className={styles.heroSubtitle}>
-          Start a topic, revisit your own threads, or skim the live feed. Search above works from any page once you are back on Home.
+          Start a topic, revisit your own threads, or skim the live feed.
+          Search above works from any page once you are back on Home.
         </p>
       </div>
 
-      {/* Action Cards */}
+      {/* Action cards ──────────────────────────────────────────────────────── */}
       <div className={styles.actionCards}>
         <div className={styles.actionCard} onClick={() => navigate('/questions/ask')}>
-          <div className={styles.actionCardIcon}>
-            <Edit size={20} />
-          </div>
+          <div className={styles.actionCardIcon}><Edit size={18} /></div>
           <div className={styles.actionCardContent}>
             <h3 className={styles.actionCardTitle}>New question</h3>
             <p className={styles.actionCardDesc}>Share context, errors, and what you already tried</p>
@@ -133,9 +111,7 @@ export default function Dashboard() {
         </div>
 
         <div className={styles.actionCard} onClick={() => navigate('/my-questions')}>
-          <div className={styles.actionCardIcon}>
-            <MessageSquare size={20} />
-          </div>
+          <div className={styles.actionCardIcon}><MessageSquare size={18} /></div>
           <div className={styles.actionCardContent}>
             <h3 className={styles.actionCardTitle}>Your topics</h3>
             <p className={styles.actionCardDesc}>Filtered list of threads you authored</p>
@@ -143,9 +119,7 @@ export default function Dashboard() {
         </div>
 
         <div className={styles.actionCard} onClick={() => navigate('/rag-documents')}>
-          <div className={styles.actionCardIcon}>
-            <BookOpen size={20} />
-          </div>
+          <div className={styles.actionCardIcon}><BookOpen size={18} /></div>
           <div className={styles.actionCardContent}>
             <h3 className={styles.actionCardTitle}>Knowledge base</h3>
             <p className={styles.actionCardDesc}>Course library, uploads, and retrieval-backed content for threads</p>
@@ -153,7 +127,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Bar */}
+      {/* Stats bar ─────────────────────────────────────────────────────────── */}
       {!isLoading && !error && (
         <div className={styles.statsBar}>
           <p className={styles.statsDescription}>
@@ -180,82 +154,74 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Discussion Feed Section */}
+      {/* Discussion feed ────────────────────────────────────────────────────── */}
       <div className={styles.discussionFeed}>
         <div className={styles.feedHeader}>
           <div>
             <h2 className={styles.feedTitle}>Discussion feed</h2>
-            <p className={styles.feedSubtitle}>Your threads use a slim list accent in this list.</p>
+            <p className={styles.feedSubtitle}>Your threads use a slim left accent in this list.</p>
           </div>
-          <button className={styles.newestButton}>
-            NEWEST THREADS
-          </button>
+          <button className={styles.newestButton}>Newest threads</button>
         </div>
 
-        {/* Results Content Area */}
         <div className={styles.contentArea}>
-        {/* Loading State */}
-        {isLoading && (
-          <div className={styles.loadingState}>
-            <div className={styles.skeletonCard} />
-            <div className={styles.skeletonCard} />
-            <div className={styles.skeletonCard} />
-          </div>
-        )}
 
-        {/* Error State */}
-        {error && !isLoading && (
-          <div className={styles.errorBanner}>
-            <p className={styles.errorText}>{error}</p>
-            <button 
-              className={styles.retryButton}
-              onClick={fetchQuestions}
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && !error && questions.length === 0 && (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>
-              <Search size={48} />
+          {/* Loading */}
+          {isLoading && (
+            <div className={styles.loadingState}>
+              <div className={styles.skeletonCard} />
+              <div className={styles.skeletonCard} />
+              <div className={styles.skeletonCard} />
             </div>
-            <h2 className={styles.emptyTitle}>
-              {(searchParams.get('q') || searchParams.get('semantic')) ? 'No questions found' : 'No questions yet'}
-            </h2>
-            <p className={styles.emptyText}>
-              {(searchParams.get('q') || searchParams.get('semantic'))
-                ? `Try a different search or browse all questions`
-                : 'Be the first to ask a question in our community!'}
-            </p>
-            {(searchParams.get('q') || searchParams.get('semantic')) && (
-              <button
-                className={styles.emptyAction}
-                onClick={handleClearSearch}
-              >
-                Clear Search
+          )}
+
+          {/* Error */}
+          {error && !isLoading && (
+            <div className={styles.errorBanner}>
+              <p className={styles.errorText}>{error}</p>
+              <button className={styles.retryButton} onClick={fetchQuestions}>
+                Try again
               </button>
-            )}
-          </div>
-        )}
-
-        {/* Questions List */}
-        {!isLoading && questions.length > 0 && (
-          <div className={styles.questionsList}>
-            <p className={styles.resultCount}>
-              Found {questions.length} question{questions.length !== 1 ? 's' : ''}
-            </p>
-            <div className={styles.cardsContainer}>
-              {questions.map((question) => (
-                <QuestionCard key={question.questionHash} question={question} />
-              ))}
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Empty */}
+          {!isLoading && !error && questions.length === 0 && (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}><Search size={48} /></div>
+              <h2 className={styles.emptyTitle}>
+                {activeQuery ? 'No questions found' : 'No questions yet'}
+              </h2>
+              <p className={styles.emptyText}>
+                {activeQuery
+                  ? 'Try a different search or browse all questions.'
+                  : 'Be the first to ask a question in our community!'}
+              </p>
+              {activeQuery && (
+                <button className={styles.emptyAction} onClick={handleClearSearch}>
+                  Clear search
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Questions */}
+          {!isLoading && !error && questions.length > 0 && (
+            <div className={styles.questionsList}>
+              <p className={styles.resultCount}>
+                {questions.length} question{questions.length !== 1 ? 's' : ''}
+              </p>
+              <div className={styles.cardsContainer}>
+                {questions.map((question) => (
+                  <QuestionCard key={question.questionHash} question={question} />
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
       </div>
-      </div>
+
     </div>
   );
 }

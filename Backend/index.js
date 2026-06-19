@@ -10,6 +10,9 @@ import { errorHandler } from "./src/middleware/error-handler.js";
 const app = express();
 const port = process.env.PORT || 3777;
 
+
+
+
 // Middleware
 app.use(
   cors({

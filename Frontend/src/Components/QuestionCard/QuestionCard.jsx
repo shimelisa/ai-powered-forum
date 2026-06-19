@@ -4,20 +4,17 @@ import { useAuth } from "../../contexts/AuthContext";
 import { timeAgo, isAuthoredByUser } from "../../lib/utils";
 import styles from "./QuestionCard.module.css";
 
-/**
- * QuestionCard: reusable row for a single question, used on the Dashboard
- * and My Questions pages. Shows author initials, title, body preview,
- * reply count, relative time, and a "YOURS" badge for the current user's posts.
- */
 export default function QuestionCard({ question }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  const isOwn = isAuthoredByUser(question, user);
 
   const initials = `${question.author?.firstName?.[0] ?? ""}${
     question.author?.lastName?.[0] ?? ""
   }`.toUpperCase();
 
-  const authorName = isAuthoredByUser(question, user)
+  const authorName = isOwn
     ? "You"
     : `${question.author?.firstName ?? ""} ${question.author?.lastName ?? ""}`.trim();
 
@@ -25,7 +22,7 @@ export default function QuestionCard({ question }) {
 
   return (
     <article
-      className={styles.card}
+      className={`${styles.card} ${isOwn ? styles.cardOwn : ""}`}
       onClick={() => navigate(`/question/${question.questionHash}`)}
       role="button"
       tabIndex={0}
@@ -36,17 +33,20 @@ export default function QuestionCard({ question }) {
         }
       }}
     >
+      {/* Badge is absolute — lives outside the header row */}
+      {isOwn && <span className={styles.card__badge}>YOURS</span>}
+
       <div className={styles.card__avatar}>{initials || "?"}</div>
 
       <div className={styles.card__body}>
+        {/* header has right padding so title never slides under the badge */}
         <div className={styles.card__header}>
           <h4 className={styles.card__title}>{question.title}</h4>
-          {isAuthoredByUser(question, user) && (
-            <span className={styles.card__badge}>Yours</span>
-          )}
         </div>
 
-        <p className={styles.card__description}>{question.description}</p>
+        {question.content && (
+          <p className={styles.card__description}>{question.content}</p>
+        )}
 
         <div className={styles.card__meta}>
           <span className={styles.card__metaItem}>

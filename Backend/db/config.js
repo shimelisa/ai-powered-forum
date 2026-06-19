@@ -1,22 +1,24 @@
-import dotenv from "dotenv";
+
+import "dotenv/config"; 
 import path from "path";
 import { fileURLToPath } from "url";
+import mysql from "mysql2/promise";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-dotenv.config({
-  path: path.resolve(__dirname, "../.env"),
-});
-import mysql from "mysql2/promise";
 
 // Database connection pool
 export const db = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "root",
-  password: process.env.DB_PASS || "",
-  database: process.env.DB_NAME || "evangadi_forum",
+  // Double-check your .env: usually this variable is DB_PASSWORD, not DB_PASS
+  password: process.env.DB_PASS || "", 
+  database: process.env.DB_NAME || "evangadiforum",
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
+
 
 const ensureParams = (params) => {
   if (params === undefined || params === null) {
