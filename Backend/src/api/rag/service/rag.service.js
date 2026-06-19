@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import PDFParser from 'pdf2json';
 import { generateEmbedding } from './gemini.service.js';
-import { db } from '../../../db/config.js';
+import { db } from '../../../../db/config.js'
 
 // ============================================================
 // Helper Functions
