@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticateUser } from "../../middleware/authentication.js";
+import { authenticateUser } from "../../../middleware/authentication.js";
 // Fixed: Added config/ folder
 import { uploadRagDocument, createDocumentMulterErrorHandler } from "../config/rag.upload.config.js";
 import { createDocumentController } from "../controller/rag.controller.js";

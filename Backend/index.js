@@ -6,12 +6,11 @@ import cors from "cors";
 import { db } from "./db/config.js";
 import { mainRouter } from "./src/api/routes.js";
 import { errorHandler } from "./src/middleware/error-handler.js";
-import ragRoutes from "./src/rag/routes/rag.routes.js";
+import ragRoutes from "./src/api/rag/routes/rag.routes.js";
 const app = express();
 const port = process.env.PORT || 3777;
 
 
-app.use("/api/rag", ragRoutes);
 
 
 // Middleware
@@ -30,6 +29,8 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date() });
 });
+
+app.use("/api/rag", ragRoutes);
 
 app.use("/api", mainRouter);
 
