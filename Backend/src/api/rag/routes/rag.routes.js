@@ -2,7 +2,7 @@ import express from "express";
 import { authenticateUser } from "../../../middleware/authentication.js";
 // Fixed: Added config/ folder
 import { uploadRagDocument, createDocumentMulterErrorHandler } from "../config/rag.upload.config.js";
-import { createDocumentController } from "../controller/rag.controller.js";
+import { createDocumentController, listDocumentsController } from "../controller/rag.controller.js";
 
 const router = express.Router();
 
@@ -24,5 +24,8 @@ router.post(
   },
   createDocumentController
 );
+
+router.get("/documents", authenticateUser, listDocumentsController);
+
 
 export default router;

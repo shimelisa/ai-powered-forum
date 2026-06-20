@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import PDFParser from 'pdf2json';
 import { generateEmbedding } from './gemini.service.js';
-import { db } from '../../../../db/config.js'
+import { db, safeExecute } from '../../../../db/config.js'
 
 // ============================================================
 // Helper Functions
@@ -233,4 +233,30 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
   } finally {
     connection.release();
   }
+};
+
+/**
+ * Fetch all documents belonging to a user, newest first.
+ * @param {number} userId
+ * @returns {Promise<Array>}
+ */
+export const listDocumentsForUserService = async (userId) => {
+  const rows = await safeExecute(
+    `SELECT document_id, title, mime_type, byte_size, status, error_message, created_at, updated_at
+     FROM documents
+     WHERE user_id = ?
+     ORDER BY created_at DESC`,
+    [userId]
+  );
+ 
+  return rows.map((row) => ({
+    documentId: row.document_id,
+    title: row.title,
+    mimeType: row.mime_type,
+    byteSize: row.byte_size,
+    status: row.status,
+    errorMessage: row.error_message,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
 };
