@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import { createDocumentFromUploadService, listDocumentsForUserService,getDocumentMetaService } from "../service/rag.service.js";
+import { createDocumentFromUploadService, listDocumentsForUserService,getDocumentMetaService, queryDocumentService, } from "../service/rag.service.js";
 
 // ============================================================
 // CREATE / UPLOAD DOCUMENT
@@ -81,3 +81,24 @@ export const listDocumentsController = async (req, res, next) => {
     return next(error);
   }
 }
+
+
+//AI Query Grounded in RAG document controller----ed
+export const queryDocumentController = async (req, res, next) => {
+  try {
+    const { documentId } = req.params;
+    const { query } = req.body;
+    const data = await queryDocumentService({
+      documentId,
+      userId: req.user.id,
+      query,
+    });
+    res.status(200).json({
+      success: true,
+      message: "Answer and citations",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
