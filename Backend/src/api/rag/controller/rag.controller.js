@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import { createDocumentFromUploadService, listDocumentsForUserService } from "../service/rag.service.js";
+import { createDocumentFromUploadService, listDocumentsForUserService,getDocumentMetaService } from "../service/rag.service.js";
 
 // ============================================================
 // CREATE / UPLOAD DOCUMENT
@@ -35,6 +35,29 @@ export const createDocumentController = async (req, res, next) => {
     });
   } catch (error) {
     console.error("❌ Controller error:", error);
+    next(error);
+  }
+};
+
+/**
+ * GET /api/rag/documents
+ * Returns all documents owned by the authenticated user.
+ * @route   GET /api/rag/documents/:documentId
+ * @desc    Fetch document metadata
+ * @access Protected
+ */
+export const getDocumentMetaController = async (req, res, next) => {
+  try {
+    const data = await getDocumentMetaService(
+      req.params.documentId,
+      req.user.id,
+    );
+    res.status(200).json({
+      success: true,
+      message: "Document fetched successfully.",
+      data,
+    });
+  } catch (error) {
     next(error);
   }
 };
