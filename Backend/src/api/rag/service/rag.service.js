@@ -171,20 +171,20 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
     );
 
     documentId = result.insertId;
-    console.log(`📄 Document ${documentId} created with status 'pending'`);
+    // console.log(`📄 Document ${documentId} created with status 'pending'`);
 
     // 4. Parse PDF using pdf2json
     let pdfText;
     try {
       pdfText = await extractTextFromPDF(fileBuffer);
-      console.log(`📄 PDF parsed: ${pdfText.length} characters`);
+      // console.log(`📄 PDF parsed: ${pdfText.length} characters`);
     } catch (error) {
       throw new Error(`Failed to parse PDF: ${error.message}`);
     }
 
     // 5. Chunk text
     const chunks = chunkText(pdfText, 1000, 150);
-    console.log(`📄 Created ${chunks.length} chunks`);
+    // console.log(`📄 Created ${chunks.length} chunks`);
 
     if (chunks.length === 0) {
       throw new Error("No text content extracted from PDF");
@@ -239,7 +239,7 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
       [documentId],
     );
 
-    console.log(`📄 Document ${documentId} processing complete. Status: ready`);
+    // console.log(`📄 Document ${documentId} processing complete. Status: ready`);
 
     // Get the updated document
     const [rows] = await connection.execute(
@@ -261,7 +261,7 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
         );
         console.log(`📄 Document ${documentId} status updated to 'failed'`);
       } catch (updateError) {
-        console.error("❌ Error updating document status:", updateError);
+        console.error(" Error updating document status:", updateError);
       }
     }
 
