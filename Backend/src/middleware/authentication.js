@@ -8,14 +8,14 @@ if (!JWT_SECRET) {
 }
 
 export const authenticateUser = (req, res, next) => {
-  console.log('🔐 Authentication middleware called');
+  console.log(' Authentication middleware called');
   console.log('Headers:', req.headers);
   
   const authHeader = req.headers.authorization;
   console.log('Auth Header:', authHeader);
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    console.log('❌ No Bearer token found');
+    console.log(' No Bearer token found');
     throw new UnauthenticatedError("Authentication invalid");
   }
 
