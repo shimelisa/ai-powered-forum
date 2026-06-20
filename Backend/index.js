@@ -11,7 +11,6 @@ const app = express();
 const port = process.env.PORT || 3777;
 
 
-app.use("/api/rag", ragRoutes);
 
 
 // Middleware
@@ -30,6 +29,8 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date() });
 });
+
+app.use("/api/rag", ragRoutes);
 
 app.use("/api", mainRouter);
 

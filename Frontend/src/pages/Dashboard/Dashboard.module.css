@@ -347,3 +347,23 @@
     font-size: 22px;
   }
 }
+
+
+.contentArea {
+  display: flex;
+  flex-direction: column;
+}
+
+.cardsContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.resultCount {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding: 14px 20px 10px;
+  margin: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+}

@@ -8,7 +8,18 @@ export default function QuestionCard({ question }) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const isOwn = isAuthoredByUser(question, user);
+  // 1. Core utility check
+  let isOwn = isAuthoredByUser(question, user);
+
+  // 2. Fallback robust direct check if the utility fails
+  if (!isOwn && user && question) {
+    const currentUserId = user.id || user.userId;
+    const authorId = question.author?.id || question.authorId || question.userId;
+    
+    if (currentUserId && authorId) {
+      isOwn = String(currentUserId) === String(authorId);
+    }
+  }
 
   const initials = `${question.author?.firstName?.[0] ?? ""}${
     question.author?.lastName?.[0] ?? ""
@@ -22,7 +33,8 @@ export default function QuestionCard({ question }) {
 
   return (
     <article
-      className={`${styles.card} ${isOwn ? styles.cardOwn : ""}`}
+      // Using direct bracket notation to guarantee module string lookup
+      className={`${styles.card} ${isOwn ? styles['cardOwn'] : ""}`}
       onClick={() => navigate(`/question/${question.questionHash}`)}
       role="button"
       tabIndex={0}
@@ -33,15 +45,12 @@ export default function QuestionCard({ question }) {
         }
       }}
     >
-      {/* Badge is absolute — lives outside the header row */}
-      {isOwn && <span className={styles.card__badge}>YOURS</span>}
-
       <div className={styles.card__avatar}>{initials || "?"}</div>
 
       <div className={styles.card__body}>
-        {/* header has right padding so title never slides under the badge */}
         <div className={styles.card__header}>
           <h4 className={styles.card__title}>{question.title}</h4>
+          {isOwn && <span className={styles['card__badge']}>YOURS</span>}
         </div>
 
         {question.content && (
@@ -50,7 +59,7 @@ export default function QuestionCard({ question }) {
 
         <div className={styles.card__meta}>
           <span className={styles.card__metaItem}>
-            <MessageSquare size={14} />
+            <MessageSquare size={13} />
             {replyCount} {replyCount === 1 ? "reply" : "replies"}
           </span>
           <span className={styles.card__metaItem}>
