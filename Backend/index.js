@@ -27,8 +27,6 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date() });
 });
 
-app.use("/api/rag", ragRoutes);
-
 app.use("/api", mainRouter);
 
 app.use(errorHandler);

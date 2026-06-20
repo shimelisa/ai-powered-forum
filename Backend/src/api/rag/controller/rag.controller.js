@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import { createDocumentFromUploadService, listDocumentsForUserService } from "../service/rag.service.js";
+import { createDocumentFromUploadService, listDocumentsForUserService,getDocumentMetaService, queryDocumentService, } from "../service/rag.service.js";
 
 // ============================================================
 // CREATE / UPLOAD DOCUMENT
@@ -42,6 +42,29 @@ export const createDocumentController = async (req, res, next) => {
 /**
  * GET /api/rag/documents
  * Returns all documents owned by the authenticated user.
+ * @route   GET /api/rag/documents/:documentId
+ * @desc    Fetch document metadata
+ * @access Protected
+ */
+export const getDocumentMetaController = async (req, res, next) => {
+  try {
+    const data = await getDocumentMetaService(
+      req.params.documentId,
+      req.user.id,
+    );
+    res.status(200).json({
+      success: true,
+      message: "Document fetched successfully.",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/rag/documents
+ * Returns all documents owned by the authenticated user.
  */
 
 export const listDocumentsController = async (req, res, next) => {
@@ -58,3 +81,24 @@ export const listDocumentsController = async (req, res, next) => {
     return next(error);
   }
 }
+
+
+//AI Query Grounded in RAG document controller----ed
+export const queryDocumentController = async (req, res, next) => {
+  try {
+    const { documentId } = req.params;
+    const { query } = req.body;
+    const data = await queryDocumentService({
+      documentId,
+      userId: req.user.id,
+      query,
+    });
+    res.status(200).json({
+      success: true,
+      message: "Answer and citations",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
