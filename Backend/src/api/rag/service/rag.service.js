@@ -15,6 +15,37 @@ const safeDecodeURIComponent = (str) => {
     return str;
   }
 };
+
+
+// ── Shared: assertOwnedDocument ──────────────────────────────────────────────
+/**
+ * Verifies that a document exists and belongs to the requesting user.
+ * Reusable across all RAG controllers (file, search, query, delete, meta).
+ *
+ * @param {number} documentId - The document ID from the route param.
+ * @param {number} userId - The authenticated user's ID from req.user.id.
+ * @returns {Promise<Object>} The full document row from the DB.
+ * @throws {Error} 404 if not found or not owned by this user.
+ */
+export const assertOwnedDocument = async (documentId, userId) => {
+  const rows = await safeExecute(
+    `SELECT
+       document_id, user_id, title,
+       storage_path, mime_type, byte_size,
+       status, error_message, created_at, updated_at
+     FROM documents
+     WHERE document_id = ? AND user_id = ?
+     LIMIT 1`,
+    [documentId, userId],
+  );
+
+  if (rows.length === 0) {
+    const err = new Error("Document not found");
+    err.statusCode = 404;
+    throw err;
+  }
+  return rows[0];
+};
 /**
  * Chunk text into overlapping segments
  */
@@ -237,6 +268,21 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
     throw error;
   } finally {
     connection.release();
+  }
+};
+
+/**
+ * Service to fetch metadata for a single RAG document.
+ * Leverages the optimized assertOwnedDocument utility from above.
+ */
+export const getDocumentMetaService = async (documentId, userId) => {
+  try {
+    return await assertOwnedDocument(documentId, userId);
+  } catch (error) {
+    if (error.statusCode === 404) {
+      throw new Error("DOCUMENT_NOT_FOUND");
+    }
+    throw error;
   }
 };
 

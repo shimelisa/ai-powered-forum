@@ -22,18 +22,20 @@ export const queryDocumentValidation = [
 
 // // src/api/rag/validation/rag.validation.js
 
-// import { body, param, query } from 'express-validator';
+ import { body, param, query } from 'express-validator';
+ import {validationErrorHandler} from '../../../middleware/validation-handler.js'
 
 // // ============================================================
 // // DOCUMENT ID VALIDATION
 // // ============================================================
 
-// export const documentIdParamValidation = [
-//   param('documentId')
-//     .isInt({ min: 1 })
-//     .withMessage('Document ID must be a positive integer')
-//     .toInt(),
-// ];
+export const documentIdParamValidation = [
+  param('documentId')
+    .isInt({ min: 1 })
+    .withMessage('Document ID must be a positive integer')
+    .toInt(),
+    validationErrorHandler
+];
 
 // // ============================================================
 // // DELETE DOCUMENT VALIDATION
