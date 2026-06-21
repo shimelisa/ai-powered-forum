@@ -44,20 +44,33 @@ function handleRagError(error, action = "fetch") {
  * Maps raw database rows (snake_case) to standard frontend model keys (camelCase).
  * Matches the backend schema outputs.
  */
+
+
 function mapDocument(row) {
   if (!row) return null;
   return {
-    id: row.document_id ?? row.id,
-    userId: row.user_id ?? row.userId,
+    id: row.documentId ?? row.document_id ?? row.id,  // ✅ Check camelCase first
+    userId: row.userId ?? row.user_id,
     title: row.title,
-    mimeType: row.mime_type ?? row.mimeType,
-    byteSize: row.byte_size ?? row.byteSize,
-    status: row.status, // 'pending' | 'ready' | 'failed'
-    errorMessage: row.error_message ?? row.errorMessage ?? null,
-    createdAt: row.created_at ?? row.createdAt,
-    updatedAt: row.updated_at ?? row.updatedAt,
+    mimeType: row.mimeType ?? row.mime_type,
+    byteSize: row.byteSize ?? row.byte_size,
+    status: row.status,
+    errorMessage: row.errorMessage ?? row.error_message ?? null,
+    createdAt: row.createdAt ?? row.created_at,
+    updatedAt: row.updatedAt ?? row.updated_at,
   };
 }
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Upload & Process RAG Document

@@ -231,32 +231,50 @@
 
 .docItem {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: stretch;
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 10px 12px;
-  cursor: pointer;
-  text-align: left;
+  padding: 0;
   width: 100%;
   transition: all 0.15s;
-  gap: 8px;
+  overflow: hidden;
 }
 .docItem:hover {
   border-color: #d1d5db;
-  background: #f9fafb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 .docItemActive {
   border-color: #f97316 !important;
-  background: #fff7ed !important;
+  background: #fffaf0 !important;
+  box-shadow: 0 1px 4px rgba(249, 115, 22, 0.15) !important;
+}
+
+/* Clickable area for selecting document */
+.docItemClickable {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 12px 14px;
+  min-width: 0;
+  transition: background 0.15s;
+}
+.docItemClickable:hover {
+  background: rgba(249, 115, 22, 0.02);
+}
+.docItemClickable:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px #f97316;
+  background: rgba(249, 115, 22, 0.03);
 }
 
 .docItemLeft {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
+  flex: 1;
 }
 
 .docName {
@@ -266,7 +284,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
 }
 
 .docStatus {
@@ -276,40 +293,56 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 20px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  line-height: 1;
 }
 
 .statusReady {
   color: #16a34a;
-  background: #f0fdf4;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
 }
 
 .statusProcessing {
   color: #d97706;
-  background: #fffbeb;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
 }
 
 .statusError {
   color: #dc2626;
-  background: #fef2f2;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
 }
 
 .deleteBtn {
-  background: none;
+  background: transparent;
   border: none;
+  border-left: 1px solid transparent;
   color: #d1d5db;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 5px;
+  padding: 0 14px;
   display: flex;
   align-items: center;
-  transition: color 0.15s, background 0.15s;
+  justify-content: center;
+  transition: all 0.2s;
   flex-shrink: 0;
+  margin: 0;
 }
 .deleteBtn:hover {
   color: #ef4444;
   background: #fef2f2;
+  border-left-color: #fee2e2;
+}
+.deleteBtn:focus {
+  outline: none;
+  color: #dc2626;
+  background: #fee2e2;
+  border-left-color: #fecaca;
+}
+.deleteBtn:active {
+  background: #fecaca;
 }
 
 /* ──────────────────────────────────────────────

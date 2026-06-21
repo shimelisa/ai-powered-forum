@@ -314,37 +314,57 @@ const RagDocuments = () => {
               Your library is empty. Upload a PDF to index it for search and Q&amp;A.
             </p>
           ) : (
-            <div className={styles.docList}>
-              {documents.map((doc) => (
-                <button
-                  key={doc.id}
-                  className={`${styles.docItem} ${activeDoc?.id === doc.id ? styles.docItemActive : ""}`}
-                  onClick={() => handleSelectDoc(doc)}
-                >
-                  <div className={styles.docItemLeft}>
-                    <span className={styles.docName}>{doc.title}</span>
-                    <span
-                      className={`${styles.docStatus} ${
-                        doc.status === "ready"
-                          ? styles.statusReady
-                          : doc.status === "failed"
-                          ? styles.statusError
-                          : styles.statusProcessing
-                      }`}
-                    >
-                      {(doc.status || "unknown").toUpperCase()}
-                    </span>
-                  </div>
-                  <button
-                    className={styles.deleteBtn}
-                    onClick={(e) => handleDelete(e, doc.id)}
-                    title="Delete document"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </button>
-              ))}
-            </div>
+           <div className={styles.docList}>
+  {documents.map((doc) => (
+    <div
+      key={doc.id}
+      className={`${styles.docItem} ${activeDoc?.id === doc.id ? styles.docItemActive : ""}`}
+    >
+      
+      <div
+        role="button"
+        tabIndex={0}
+        className={styles.docItemClickable}
+        onClick={() => handleSelectDoc(doc)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleSelectDoc(doc);
+          }
+        }}
+      >
+        <div className={styles.docItemLeft}>
+          <span className={styles.docName}>{doc.title}</span>
+          <span
+            className={`${styles.docStatus} ${
+              doc.status === "ready"
+                ? styles.statusReady
+                : doc.status === "failed"
+                ? styles.statusError
+                : styles.statusProcessing
+            }`}
+          >
+            {(doc.status || "unknown").toUpperCase()}
+          </span>
+        </div>
+      </div>
+      
+      
+      <button
+        className={styles.deleteBtn}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDelete(e, doc.id);
+        }}
+        title="Delete document"
+        aria-label={`Delete ${doc.title}`}
+      >
+        <Trash2 size={14} />
+      </button>
+    </div>
+  ))}
+</div>
+
           )}
         </aside>.
 
