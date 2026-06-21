@@ -4,6 +4,10 @@ import path from "path";
 import { PDFParse } from "pdf-parse";
 import { generateEmbedding } from "./gemini.service.js";
 import { db, safeExecute } from "../../../../db/config.js";
+import {
+  calculateCosineSimilarity,
+  rankChunksByQuery,
+} from "./vector.service.js";
 
 // ============================================================
 // Helper Functions
@@ -193,19 +197,18 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
     );
 
     documentId = result.insertId;
-    
+
     // 4. Parse PDF using pdf2json
     let pdfText;
     try {
       pdfText = await extractTextFromPDF(fileBuffer);
-      
     } catch (error) {
       throw new Error(`Failed to parse PDF: ${error.message}`);
     }
 
     // 5. Chunk text
     const chunks = chunkText(pdfText, 1000, 150);
-    
+
     if (chunks.length === 0) {
       throw new Error("No text content extracted from PDF");
     }
@@ -214,7 +217,6 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
     let embeddings;
     try {
       embeddings = await generateEmbeddings(chunks);
-      
     } catch (error) {
       throw new Error(`Failed to generate embeddings: ${error.message}`);
     }
@@ -244,7 +246,7 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
       }
 
       // Commit transaction
-      await connection.commit();      
+      await connection.commit();
     } catch (error) {
       // Rollback on error
       await connection.rollback();
@@ -257,7 +259,7 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
        WHERE document_id = ?`,
       [documentId],
     );
-        
+
     // Get the updated document
     const [rows] = await connection.execute(
       `SELECT * FROM documents WHERE document_id = ?`,
@@ -275,7 +277,7 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
           `UPDATE documents SET status = 'failed', error_message = ?, updated_at = NOW() 
            WHERE document_id = ?`,
           [error.message, documentId],
-        );        
+        );
       } catch (updateError) {
         console.error(" Error updating document status:", updateError);
       }
@@ -347,7 +349,6 @@ export const listDocumentsForUserService = async (userId) => {
   }));
 };
 
-
 //AI Query Grounded in RAG system document service----ed
 export const queryDocumentService = async ({ documentId, userId, query }) => {
   const { results } = await searchInDocumentService({
@@ -391,4 +392,71 @@ Answer (cite excerpt numbers like [1], [2] where relevant):`;
     })),
     chunksUsed: results.map((r) => r.chunkId),
   };
+};
+
+
+
+const SEARCH_SIMILARITY_THRESHOLD =
+  Number(process.env.RAG_SEARCH_THRESHOLD) || 0.5;
+const SEARCH_DEFAULT_K = Number(process.env.RAG_SEARCH_K) || 5;
+
+export const searchInDocumentService = async ({
+  documentId,
+  userId,
+  query,
+  k,
+  threshold,
+}) => {
+  // 1. Ownership + readiness
+  const document = await assertOwnedDocument(documentId, userId);
+  if (document.status !== "ready") {
+    const err = new Error(
+      `Document is not ready for search (status: ${document.status})`,
+    );
+    err.statusCode = 409;
+    throw err;
+  }
+
+  // 2. Embed the search query — RETRIEVAL_QUERY, not RETRIEVAL_DOCUMENT,
+  //    since this text is a question/topic, not a chunk being indexed
+  const queryEmbedding = await generateEmbedding(query, {
+    taskType: "RETRIEVAL_QUERY",
+    outputDimensionality: 768,
+  });
+
+  // 3. Fetch every ready chunk + its vector + its text in one query.
+  //    Joining content in here (rather than a separate "hydrate" query
+  //    afterward) is a deliberate simplification: a single PDF has at
+  //    most a few hundred chunks, so pulling all their text up front is
+  //    cheaper than a second round trip for just the top k.
+  const rows = await safeExecute(
+    `SELECT dc.chunk_id, dc.chunk_index, dc.content, dcv.embedding
+     FROM document_chunk_vectors dcv
+     JOIN document_chunks dc ON dc.chunk_id = dcv.chunk_id
+     WHERE dc.document_id = ? AND dcv.status = 'ready'`,
+    [documentId],
+  );
+
+  // 4 & 5. Score every chunk, filter by threshold, sort, take top k
+  const effectiveK = k ?? SEARCH_DEFAULT_K;
+  const effectiveThreshold = threshold ?? SEARCH_SIMILARITY_THRESHOLD;
+
+  const results = rows
+    .map((row) => {
+      const embedding =
+        typeof row.embedding === "string"
+          ? JSON.parse(row.embedding)
+          : row.embedding;
+      return {
+        chunkId: row.chunk_id,
+        chunkIndex: row.chunk_index,
+        score: calculateCosineSimilarity(queryEmbedding, embedding),
+        excerpt: row.content,
+      };
+    })
+    .filter((r) => r.score >= effectiveThreshold)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, effectiveK);
+
+  return { query, results };
 };
