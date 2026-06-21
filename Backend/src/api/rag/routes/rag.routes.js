@@ -15,7 +15,7 @@ const router = express.Router();
 
 // Upload document
 router.post(
-  "/documents",
+  "/",
   authenticateUser,
   (req, res, next) => {
     uploadRagDocument.single("file")(req, res, (err) => {
@@ -28,9 +28,9 @@ router.post(
   createDocumentController
 );
 
-router.get("/documents", authenticateUser, listDocumentsController);
+router.get("/", authenticateUser, listDocumentsController);
 
-router.get("/documents/:documentId",
+router.get("/:documentId",
   authenticateUser,
   documentIdParamValidation,
   getDocumentMetaController

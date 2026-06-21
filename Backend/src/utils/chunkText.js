@@ -100,8 +100,7 @@ export const chunkText = (text, chunkSize = 500, overlap = 75) => {
   }
 
   // If no chunks were created, try with a smaller chunk size
-  if (chunks.length === 0 && chunkSize > 100) {
-    console.log("🔄 Retrying chunking with smaller size...");
+  if (chunks.length === 0 && chunkSize > 100) {   
     return chunkText(text, Math.floor(chunkSize / 2), Math.floor(overlap / 2));
   }
 

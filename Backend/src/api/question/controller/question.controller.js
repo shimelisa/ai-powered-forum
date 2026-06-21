@@ -180,10 +180,6 @@ export const assessAnswerAgainstQuestionController = async (req, res, next) => {
     const { questionHash } = req.params;
     const { answerText } = req.body;
 
-    // 🔍 DEBUG INPUTS (remove later if needed)
-    console.log("PARAMS:", req.params);
-    console.log("BODY:", req.body);
-
     if (!questionHash) {
       return res.status(400).json({
         success: false,
