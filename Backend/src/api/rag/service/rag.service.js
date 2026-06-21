@@ -287,6 +287,25 @@ export const getDocumentMetaService = async (documentId, userId) => {
 };
 
 /**
+ * Retrieves document metadata and resolves the absolute file path.
+ * @param {number} documentId
+ * @param {number} userId
+ * @returns {{ absolutePath, title, mimeType }}
+ */
+export const getDocumentFileService = async (documentId, userId) => {
+  const { storage_path, title, mime_type } = await assertOwnedDocument(
+    documentId,
+    userId,
+  );
+
+  return {
+    absolutePath: resolveStoragePath(storage_path),
+    title,
+    mimeType: mime_type,
+  };
+};
+
+/**
  * Fetch all documents belonging to a user, newest first.
  * @param {number} userId
  * @returns {Promise<Array>}

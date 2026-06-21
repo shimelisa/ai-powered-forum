@@ -2,7 +2,7 @@ import express from "express";
 import { authenticateUser } from "../../../middleware/authentication.js";
 // Fixed: Added config/ folder
 import { uploadRagDocument, createDocumentMulterErrorHandler } from "../config/rag.upload.config.js";
-import { createDocumentController, listDocumentsController,getDocumentMetaController,  queryDocumentController, } from "../controller/rag.controller.js";
+import { createDocumentController, listDocumentsController,getDocumentMetaController,  queryDocumentController, getDocumentFileController} from "../controller/rag.controller.js";
 import { documentIdParamValidation } from "../validation/rag.validation.js";
 import { queryDocumentValidation } from "../validation/rag.validation.js";
 
@@ -35,6 +35,18 @@ router.get("/documents/:documentId",
   documentIdParamValidation,
   getDocumentMetaController
 )
+
+/**
+ * @route GET /api/rag/documents/:documentId/file
+ * @desc Stream PDF blob for browser preview
+ * @access Protected
+ */
+router.get(
+  "/:documentId/file",
+  authenticateUser,
+  documentIdParamValidation,
+  getDocumentFileController,
+);
 
 //AI Query Grounded RAG system route----ed
 router.post(
