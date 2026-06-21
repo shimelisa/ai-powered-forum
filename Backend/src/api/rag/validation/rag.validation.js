@@ -1,4 +1,4 @@
-import { param, body } from "express-validator";
+import { param, body, query} from "express-validator";
 import { validationErrorHandler } from "../../../middleware/validation-handler.js";
 
 
@@ -49,29 +49,29 @@ export const documentIdParamValidation = [
 // // SEARCH IN DOCUMENT VALIDATION
 // // ============================================================
 
-// export const searchInDocumentValidation = [
-//   param('documentId')
-//     .isInt({ min: 1 })
-//     .withMessage('Document ID must be a positive integer')
-//     .toInt(),
-//   query('query')
-//     .isString()
-//     .trim()
-//     .notEmpty()
-//     .withMessage('Search query is required')
-//     .isLength({ min: 2 })
-//     .withMessage('Search query must be at least 2 characters'),
-//   query('k')
-//     .optional()
-//     .isInt({ min: 1, max: 50 })
-//     .withMessage('k must be between 1 and 50')
-//     .toInt(),
-//   query('threshold')
-//     .optional()
-//     .isFloat({ min: 0, max: 1 })
-//     .withMessage('Threshold must be between 0 and 1')
-//     .toFloat(),
-// ];
+export const searchInDocumentValidation = [
+  param('documentId')
+    .isInt({ min: 1 })
+    .withMessage('Document ID must be a positive integer')
+    .toInt(),
+  query('query')
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage('Search query is required')
+    .isLength({ min: 2 })
+    .withMessage('Search query must be at least 2 characters'),
+  query('k')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('k must be between 1 and 50')
+    .toInt(),
+  query('threshold')
+    .optional()
+    .isFloat({ min: 0, max: 1 })
+    .withMessage('Threshold must be between 0 and 1')
+    .toFloat(),
+];
 
 // // ============================================================
 // // QUERY DOCUMENT VALIDATION
@@ -100,25 +100,26 @@ export const documentIdParamValidation = [
 // // GLOBAL SEARCH VALIDATION
 // // ============================================================
 
-// export const searchDocumentsValidation = [
-//   query('query')
-//     .isString()
-//     .trim()
-//     .notEmpty()
-//     .withMessage('Search query is required')
-//     .isLength({ min: 2 })
-//     .withMessage('Search query must be at least 2 characters'),
-//   query('limit')
-//     .optional()
-//     .isInt({ min: 1, max: 100 })
-//     .withMessage('Limit must be between 1 and 100')
-//     .toInt(),
-//   query('threshold')
-//     .optional()
-//     .isFloat({ min: 0, max: 1 })
-//     .withMessage('Threshold must be between 0 and 1')
-//     .toFloat(),
-// ];
+export const searchDocumentsValidation = [
+  query('query')
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage('Search query is required')
+    .isLength({ min: 2 })
+    .withMessage('Search query must be at least 2 characters'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Limit must be between 1 and 100')
+    .toInt(),
+  query('threshold')
+    .optional()
+    .isFloat({ min: 0, max: 1 })
+    .withMessage('Threshold must be between 0 and 1')
+    .toFloat(),
+    validationErrorHandler,
+];
 
 // // ============================================================
 // // BULK DELETE VALIDATION

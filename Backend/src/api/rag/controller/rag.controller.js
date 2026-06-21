@@ -119,7 +119,7 @@ export const listDocumentsController = async (req, res, next) => {
   }
 };
 
-//AI Query Grounded in RAG document controller 
+//AI Query Grounded in RAG document controller
 export const queryDocumentController = async (req, res, next) => {
   try {
     const { documentId } = req.params;
@@ -132,6 +132,27 @@ export const queryDocumentController = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Answer and citations",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const searchInDocumentController = async (req, res, next) => {
+  try {
+    const { documentId } = req.params;
+    const { query, k, threshold } = req.query;
+    const data = await searchInDocumentService({
+      documentId,
+      userId: req.user.id,
+      query,
+      k,
+      threshold,
+    });
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Ranked chunk excerpts",
       data,
     });
   } catch (error) {
