@@ -1,5 +1,11 @@
 import { StatusCodes } from "http-status-codes";
-import { createDocumentFromUploadService, listDocumentsForUserService,getDocumentMetaService, queryDocumentService, } from "../service/rag.service.js";
+import {
+  createDocumentFromUploadService,
+  listDocumentsForUserService,
+  getDocumentMetaService,
+  queryDocumentService,
+  getDocumentFileService,
+} from "../service/rag.service.js";
 
 // ============================================================
 // CREATE / UPLOAD DOCUMENT
@@ -15,7 +21,7 @@ export const createDocumentController = async (req, res, next) => {
     }
 
     const userId = req.user?.id;
-    
+
     if (!userId) {
       return res.status(StatusCodes.UNAUTHORIZED).json({
         success: false,
@@ -63,6 +69,37 @@ export const getDocumentMetaController = async (req, res, next) => {
 };
 
 /**
+ * @route GET /api/rag/documents/:documentId/file
+ * @desc Stream PDF file for browser preview
+ * @access Protected
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export const getDocumentFileController = async (req, res, next) => {
+  try {
+    const { absolutePath, title, mimeType } = await getDocumentFileService(
+      req.params.documentId,
+      req.user.id,
+    );
+    res.sendFile(
+      absolutePath,
+      {
+        headers: {
+          "Content-Type": mimeType,
+          "Content-Disposition": `inline; filename="${title}"`,
+        },
+      },
+      (err) => {
+        if (err) next(err);
+      },
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * GET /api/rag/documents
  * Returns all documents owned by the authenticated user.
  */
@@ -71,17 +108,16 @@ export const listDocumentsController = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const documents = await listDocumentsForUserService(userId);
- 
+
     return res.status(200).json({
       success: true,
-      message: 'Documents fetched successfully.',
+      message: "Documents fetched successfully.",
       data: documents,
     });
   } catch (error) {
     return next(error);
   }
-}
-
+};
 
 //AI Query Grounded in RAG document controller----ed
 export const queryDocumentController = async (req, res, next) => {
