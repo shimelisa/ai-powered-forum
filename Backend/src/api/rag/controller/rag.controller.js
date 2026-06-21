@@ -119,7 +119,7 @@ export const listDocumentsController = async (req, res, next) => {
   }
 };
 
-//AI Query Grounded in RAG document controller----ed
+//AI Query Grounded in RAG document controller 
 export const queryDocumentController = async (req, res, next) => {
   try {
     const { documentId } = req.params;
