@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
-import PDFParser from "pdf2json";
+// import PDFParser from "pdf2json";
+import { PDFParse } from "pdf-parse";
 import { generateEmbedding } from "./gemini.service.js";
 import { db, safeExecute } from "../../../../db/config.js";
 
@@ -16,6 +17,20 @@ const safeDecodeURIComponent = (str) => {
   }
 };
 
+// ── Helper: resolve storage_path safely ─────────────────────────────────────
+/**
+ * Converts a relative storage_path to an absolute path.
+ * Uses process.cwd() (backend root) to avoid path doubling on Windows.
+ * @param {string} storagePath - e.g. "uploads/rag/file.pdf"
+ * @returns {string} absolute path
+ */
+const resolveStoragePath = (storagePath) => {
+  // if storagePath is already absolute (e.g. Windows "C:\..." or POSIX "/..."), use it directly
+  if (path.isAbsolute(storagePath)) {
+    return storagePath;
+  }
+  return path.join(process.cwd(), storagePath);
+};
 
 // ── Shared: assertOwnedDocument ──────────────────────────────────────────────
 /**
@@ -104,41 +119,48 @@ const generateEmbeddings = async (chunks) => {
 /**
  * Extract text from PDF using pdf2json
  */
-const extractTextFromPDF = (pdfBuffer) => {
-  return new Promise((resolve, reject) => {
-    const pdfParser = new PDFParser();
+// const extractTextFromPDF = (pdfBuffer) => {
+//   return new Promise((resolve, reject) => {
+//     const pdfParser = new PDFParser();
 
-    pdfParser.on("pdfParser_dataError", (errData) => {
-      reject(new Error(`PDF parsing error: ${errData.parserError}`));
-    });
+//     pdfParser.on("pdfParser_dataError", (errData) => {
+//       reject(new Error(`PDF parsing error: ${errData.parserError}`));
+//     });
 
-    pdfParser.on("pdfParser_dataReady", (pdfData) => {
-      try {
-        let fullText = "";
-        if (pdfData && pdfData.Pages) {
-          for (const page of pdfData.Pages) {
-            if (page.Texts) {
-              for (const text of page.Texts) {
-                if (text.R) {
-                  for (const line of text.R) {
-                    if (line.T) {
-                      fullText += safeDecodeURIComponent(line.T) + " ";
-                    }
-                  }
-                }
-              }
-              fullText += "\n";
-            }
-          }
-        }
-        resolve(fullText.trim());
-      } catch (error) {
-        reject(new Error(`Failed to extract text: ${error.message}`));
-      }
-    });
+//     pdfParser.on("pdfParser_dataReady", (pdfData) => {
+//       try {
+//         let fullText = "";
+//         if (pdfData && pdfData.Pages) {
+//           for (const page of pdfData.Pages) {
+//             if (page.Texts) {
+//               for (const text of page.Texts) {
+//                 if (text.R) {
+//                   for (const line of text.R) {
+//                     if (line.T) {
+//                       fullText += safeDecodeURIComponent(line.T) + " ";
+//                     }
+//                   }
+//                 }
+//               }
+//               fullText += "\n";
+//             }
+//           }
+//         }
+//         resolve(fullText.trim());
+//       } catch (error) {
+//         reject(new Error(`Failed to extract text: ${error.message}`));
+//       }
+//     });
 
-    pdfParser.parseBuffer(pdfBuffer);
-  });
+//     pdfParser.parseBuffer(pdfBuffer);
+//   });
+// };
+
+const extractTextFromPDF = async (pdfBuffer) => {
+  const parser = new PDFParse({ data: pdfBuffer });
+  const result = await parser.getText();
+  const rawText = result.text;
+  return rawText.trim();
 };
 
 // ============================================================
@@ -171,21 +193,19 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
     );
 
     documentId = result.insertId;
-    // console.log(`📄 Document ${documentId} created with status 'pending'`);
-
+    
     // 4. Parse PDF using pdf2json
     let pdfText;
     try {
       pdfText = await extractTextFromPDF(fileBuffer);
-      // console.log(`📄 PDF parsed: ${pdfText.length} characters`);
+      
     } catch (error) {
       throw new Error(`Failed to parse PDF: ${error.message}`);
     }
 
     // 5. Chunk text
     const chunks = chunkText(pdfText, 1000, 150);
-    // console.log(`📄 Created ${chunks.length} chunks`);
-
+    
     if (chunks.length === 0) {
       throw new Error("No text content extracted from PDF");
     }
@@ -194,7 +214,7 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
     let embeddings;
     try {
       embeddings = await generateEmbeddings(chunks);
-      console.log(`📄 Generated ${embeddings.length} embeddings`);
+      
     } catch (error) {
       throw new Error(`Failed to generate embeddings: ${error.message}`);
     }
@@ -224,8 +244,7 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
       }
 
       // Commit transaction
-      await connection.commit();
-      console.log(`📄 Stored ${chunks.length} chunks and vectors in database`);
+      await connection.commit();      
     } catch (error) {
       // Rollback on error
       await connection.rollback();
@@ -238,9 +257,7 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
        WHERE document_id = ?`,
       [documentId],
     );
-
-    // console.log(`📄 Document ${documentId} processing complete. Status: ready`);
-
+        
     // Get the updated document
     const [rows] = await connection.execute(
       `SELECT * FROM documents WHERE document_id = ?`,
@@ -258,8 +275,7 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
           `UPDATE documents SET status = 'failed', error_message = ?, updated_at = NOW() 
            WHERE document_id = ?`,
           [error.message, documentId],
-        );
-        console.log(`📄 Document ${documentId} status updated to 'failed'`);
+        );        
       } catch (updateError) {
         console.error(" Error updating document status:", updateError);
       }

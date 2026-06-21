@@ -18,5 +18,5 @@ mainRouter.use("/questions", questionRoutes);
 mainRouter.use("/answers", answersRoutes);
 
 // RAG routes (includes GET/api/rag)
-mainRouter.use("/rag", ragRoutes);
+mainRouter.use("/rag/documents", ragRoutes);
 

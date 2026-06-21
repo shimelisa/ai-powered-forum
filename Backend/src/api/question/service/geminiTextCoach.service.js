@@ -61,7 +61,6 @@ async function fetchAssessAnswerResponse(prompt) {
       maxOutputTokens: 300,
     },
   });
-  console.log(response);
   const text = response?.text;
   return typeof text === 'string' ? text : '';
 }
