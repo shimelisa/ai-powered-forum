@@ -6,19 +6,18 @@ import cors from "cors";
 import { db } from "./db/config.js";
 import { mainRouter } from "./src/api/routes.js";
 import { errorHandler } from "./src/middleware/error-handler.js";
-import ragRoutes from "./src/api/rag/routes/rag.routes.js";
+
 const app = express();
 const port = process.env.PORT || 3777;
 
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    origin: "http://localhost:5174",
-    // origin: "http://localhost:5175",
+    origin: ["http://localhost:5173", "http://localhost:5174"],
     credentials: true,
   }),
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
