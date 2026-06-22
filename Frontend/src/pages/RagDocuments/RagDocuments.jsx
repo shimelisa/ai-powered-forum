@@ -19,15 +19,6 @@ import {
 } from "../../services/rag/rag.service";
 import styles from "./RagDocuments.module.css";
 
-/**
- * NOTE ON BACKEND STATE (see rag.service.js for full detail):
- * Only `POST /api/rag/documents` (upload) is guaranteed to exist.
- * listDocuments / deleteDocument / searchInDocument / queryDocument /
- * fetchPdfObjectUrl all reject with a NotImplementedError
- * (err.isNotImplemented === true) until those routes are built —
- * this component shows a clear inline message instead of a raw
- * network error whenever that happens.
- */
 
 const formatBytes = (bytes) => {
   if (!bytes && bytes !== 0) return "";
@@ -141,7 +132,7 @@ const RagDocuments = () => {
     }
   };
 
-  // ── Upload ─────────────────────────────────────────────────
+  // ── Upload ───────
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -166,7 +157,7 @@ const RagDocuments = () => {
     }
   };
 
-  // ── Delete ─────────────────────────────────────────────────
+  // ── Delete ──
   const handleDelete = async (e, docId) => {
     e.stopPropagation();
     if (!window.confirm("Delete this document? This cannot be undone.")) return;
@@ -186,7 +177,7 @@ const RagDocuments = () => {
     }
   };
 
-  // ── Semantic search ────────────────────────────────────────
+  // ── Semantic search ──
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim() || !activeDoc) return;
@@ -208,7 +199,7 @@ const RagDocuments = () => {
     }
   };
 
-  // ── Ask with AI ────────────────────────────────────────────
+  // ── Ask with AI ──
   const handleAsk = async (e) => {
     e.preventDefault();
     if (!aiQuery.trim() || !activeDoc) return;

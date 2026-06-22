@@ -1,14 +1,5 @@
 // api/rag/service/vector.service.js
 
-// ============================================================
-// Pure vector-math helpers for RAG semantic search.
-//
-// Deliberately self-contained for the rag module — no dependency on
-// question/service/vector.service.js. The two features compute
-// similarity the same way today, but keeping them separate means
-// either one can change its scoring approach (different metric,
-// different normalization, etc.) later without risking the other.
-// ============================================================
 
 /**
  * Calculate cosine similarity between two embedding vectors.

@@ -5,6 +5,7 @@ import {
   getDocumentMetaService,
   queryDocumentService,
   getDocumentFileService,
+  searchInDocumentService
 } from "../service/rag.service.js";
 
 // ============================================================

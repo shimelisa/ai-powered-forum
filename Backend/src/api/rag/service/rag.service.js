@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 // import PDFParser from "pdf2json";
 import { PDFParse } from "pdf-parse";
-import { generateEmbedding } from "./gemini.service.js";
+import { generateEmbedding, generateAnswer } from "./gemini.service.js";
 import { db, safeExecute } from "../../../../db/config.js";
 import {
   calculateCosineSimilarity,
@@ -378,11 +378,7 @@ Question: ${query}
 
 Answer (cite excerpt numbers like [1], [2] where relevant):`;
 
-  const result = await ai.models.generateContent({
-    model: TEXT_MODEL,
-    contents: prompt,
-  });
-  const answer = result.text;
+ const answer = await generateAnswer(prompt);
 
   return {
     answer,

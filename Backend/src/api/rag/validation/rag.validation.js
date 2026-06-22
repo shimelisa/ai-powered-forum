@@ -71,6 +71,7 @@ export const searchInDocumentValidation = [
     .isFloat({ min: 0, max: 1 })
     .withMessage('Threshold must be between 0 and 1')
     .toFloat(),
+    validationErrorHandler
 ];
 
 // // ============================================================
