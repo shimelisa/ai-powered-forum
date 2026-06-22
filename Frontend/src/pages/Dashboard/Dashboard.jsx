@@ -88,47 +88,52 @@ export default function Dashboard() {
   return (
     <div className={styles.dashboard}>
 
-      {/* Hero ──────────────────────────────────────────────────────────────── */}
-      <div className={styles.heroSection}>
-        <span className={styles.breadcrumb}>Forum Home</span>
-        <h1 className={styles.heroTitle}>
-          Good to see you, {user?.firstName || 'there'}.
-        </h1>
-        <p className={styles.heroSubtitle}>
-          Start a topic, revisit your own threads, or skim the live feed.
-          Search above works from any page once you are back on Home.
-        </p>
-      </div>
+       {/* Hero ──────────────────────────────────────────────────────────────── */}
+      {!activeQuery && (
+        <div className={styles.heroSection}>
+          <span className={styles.breadcrumb}>Forum Home</span>
+          <h1 className={styles.heroTitle}>
+            Good to see you, {user?.firstName || 'there'}.
+          </h1>
+          <p className={styles.heroSubtitle}>
+            Start a topic, revisit your own threads, or skim the live feed.
+            Search above works from any page once you are back on Home.
+          </p>
+        </div>
+      )}
 
-      {/* Action cards ──────────────────────────────────────────────────────── */}
-      <div className={styles.actionCards}>
-        <div className={styles.actionCard} onClick={() => navigate('/questions/ask')}>
-          <div className={styles.actionCardIcon}><Edit size={18} /></div>
-          <div className={styles.actionCardContent}>
-            <h3 className={styles.actionCardTitle}>New question</h3>
-            <p className={styles.actionCardDesc}>Share context, errors, and what you already tried</p>
+         {/* Action cards ──────────────────────────────────────────────────────── */}
+      {!activeQuery && (
+        <div className={styles.actionCards}>
+          <div className={styles.actionCard} onClick={() => navigate('/questions/ask')}>
+            <div className={styles.actionCardIcon}><Edit size={18} /></div>
+            <div className={styles.actionCardContent}>
+              <h3 className={styles.actionCardTitle}>New question</h3>
+              <p className={styles.actionCardDesc}>Share context, errors, and what you already tried</p>
+            </div>
+          </div>
+
+          <div className={styles.actionCard} onClick={() => navigate('/my-questions')}>
+            <div className={styles.actionCardIcon}><MessageSquare size={18} /></div>
+            <div className={styles.actionCardContent}>
+              <h3 className={styles.actionCardTitle}>Your topics</h3>
+              <p className={styles.actionCardDesc}>Filtered list of threads you authored</p>
+            </div>
+          </div>
+
+          <div className={styles.actionCard} onClick={() => navigate('/rag-documents')}>
+            <div className={styles.actionCardIcon}><BookOpen size={18} /></div>
+            <div className={styles.actionCardContent}>
+              <h3 className={styles.actionCardTitle}>Knowledge base</h3>
+              <p className={styles.actionCardDesc}>Course library, uploads, and retrieval-backed content for threads</p>
+            </div>
           </div>
         </div>
+      )}
 
-        <div className={styles.actionCard} onClick={() => navigate('/my-questions')}>
-          <div className={styles.actionCardIcon}><MessageSquare size={18} /></div>
-          <div className={styles.actionCardContent}>
-            <h3 className={styles.actionCardTitle}>Your topics</h3>
-            <p className={styles.actionCardDesc}>Filtered list of threads you authored</p>
-          </div>
-        </div>
-
-        <div className={styles.actionCard} onClick={() => navigate('/rag-documents')}>
-          <div className={styles.actionCardIcon}><BookOpen size={18} /></div>
-          <div className={styles.actionCardContent}>
-            <h3 className={styles.actionCardTitle}>Knowledge base</h3>
-            <p className={styles.actionCardDesc}>Course library, uploads, and retrieval-backed content for threads</p>
-          </div>
-        </div>
-      </div>
 
       {/* Stats bar ─────────────────────────────────────────────────────────── */}
-      {!isLoading && !error && (
+           {!isLoading && !error && !activeQuery && (
         <div className={styles.statsBar}>
           <p className={styles.statsDescription}>
             Figures below describe the newest threads in this feed (up to 100 from the API).
