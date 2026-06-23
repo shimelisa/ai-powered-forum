@@ -5,7 +5,8 @@ import {
   getDocumentMetaService,
   queryDocumentService,
   getDocumentFileService,
-  searchInDocumentService
+  searchInDocumentService,
+  deleteDocumentService,
 } from "../service/rag.service.js";
 
 // ============================================================
@@ -154,6 +155,22 @@ export const searchInDocumentController = async (req, res, next) => {
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Ranked chunk excerpts",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDocumentController = async (req, res, next) => {
+  try {
+    const { documentId } = req.params;
+
+    const data = await deleteDocumentService(documentId, req.user.id);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Document deleted successfully.",
       data,
     });
   } catch (error) {

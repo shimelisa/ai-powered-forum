@@ -12,12 +12,12 @@ import {
   queryDocumentController,
   getDocumentFileController,
   searchInDocumentController,
+  deleteDocumentController,
 } from "../controller/rag.controller.js";
 import { documentIdParamValidation } from "../validation/rag.validation.js";
 import { queryDocumentValidation } from "../validation/rag.validation.js";
 
 import { searchInDocumentValidation } from "../validation/rag.validation.js";
-
 
 const router = express.Router();
 
@@ -69,8 +69,12 @@ router.post(
   queryDocumentController,
 );
 
-export default router;
-
+router.delete(
+  "/:documentId",
+  authenticateUser,
+  documentIdParamValidation,
+  deleteDocumentController,
+);
 
 router.get(
   "/:documentId/search",
@@ -78,3 +82,5 @@ router.get(
   searchInDocumentValidation,
   searchInDocumentController,
 );
+
+export default router;

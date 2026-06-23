@@ -378,7 +378,7 @@ Question: ${query}
 
 Answer (cite excerpt numbers like [1], [2] where relevant):`;
 
- const answer = await generateAnswer(prompt);
+  const answer = await generateAnswer(prompt);
 
   return {
     answer,
@@ -389,8 +389,6 @@ Answer (cite excerpt numbers like [1], [2] where relevant):`;
     chunksUsed: results.map((r) => r.chunkId),
   };
 };
-
-
 
 const SEARCH_SIMILARITY_THRESHOLD =
   Number(process.env.RAG_SEARCH_THRESHOLD) || 0.5;
@@ -455,4 +453,18 @@ export const searchInDocumentService = async ({
     .slice(0, effectiveK);
 
   return { query, results };
+};
+
+export const deleteDocumentService = async (documentId, userId) => {
+  const document = await assertOwnedDocument(documentId, userId);
+
+  await safeExecute(
+    `
+      DELETE FROM documents
+      WHERE document_id = ? AND user_id = ?
+    `,
+    [documentId, userId],
+  );
+
+  return document;
 };
