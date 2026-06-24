@@ -8,6 +8,7 @@ import {
   calculateCosineSimilarity,
   rankChunksByQuery,
 } from "./vector.service.js";
+import { answerFromRagChunksService } from "./gemini.service.js";
 
 // ============================================================
 // Helper Functions
@@ -349,53 +350,9 @@ export const listDocumentsForUserService = async (userId) => {
   }));
 };
 
-//AI Query Grounded in RAG system document service----ed
-export const queryDocumentService = async ({ documentId, userId, query }) => {
-  const { results } = await searchInDocumentService({
-    documentId,
-    userId,
-    query,
-    k: 5,
-  });
-
-  if (results.length === 0) {
-    return {
-      answer: "No relevant content found in this document for your query.",
-      citations: [],
-      chunksUsed: [],
-    };
-  }
-
-  const context = results.map((r, i) => `[${i + 1}] ${r.excerpt}`).join("\n\n");
-
-  const prompt = `You are an assistant that answers questions strictly based on provided document excerpts.
-If the answer is not in the excerpts, say "This document does not cover that topic."
-
-Document excerpts:
-${context}
-
-Question: ${query}
-
-Answer (cite excerpt numbers like [1], [2] where relevant):`;
-
- const answer = await generateAnswer(prompt);
-
-  return {
-    answer,
-    citations: results.map((r, i) => ({
-      ref: i + 1,
-      chunkIndex: r.chunkIndex,
-    })),
-    chunksUsed: results.map((r) => r.chunkId),
-  };
-};
-
-
-
 const SEARCH_SIMILARITY_THRESHOLD =
   Number(process.env.RAG_SEARCH_THRESHOLD) || 0.5;
 const SEARCH_DEFAULT_K = Number(process.env.RAG_SEARCH_K) || 5;
-
 export const searchInDocumentService = async ({
   documentId,
   userId,
@@ -455,4 +412,58 @@ export const searchInDocumentService = async ({
     .slice(0, effectiveK);
 
   return { query, results };
+};
+
+//AI Query Grounded in RAG system document service----ed
+
+export const queryDocumentService = async ({ documentId, userId, query }) => {
+  try {
+    const searchResponse = await searchInDocumentService({
+      documentId,
+      userId,
+      query,
+    });
+
+    const matchedChunks = searchResponse?.results || [];
+    if (matchedChunks.length === 0) {
+      const error = new Error(
+        "No relevant document content found for this query based on threshold criteria.",
+      );
+      error.statusCode = 404;
+      throw error;
+    }
+    const contextText = matchedChunks
+      .map((chunk) => `[Chunk #${chunk.chunkIndex}]: ${chunk.excerpt || ""}`)
+      .join("\n\n");
+
+    const aiResponse = await answerFromRagChunksService(query, contextText);
+
+    //Define fallback/low-confidence keywords or exact phrases
+    const lowerResponse = aiResponse.toLowerCase();
+    const isNotFound =
+      lowerResponse.includes("does not cover") ||
+      lowerResponse.includes("cannot find") ||
+      lowerResponse.includes("no information");
+
+    //Conditionally populate citations and chunksUsed
+    const citations = isNotFound
+      ? []
+      : matchedChunks.map((chunk, index) => ({
+          ref: index + 1,
+          chunkIndex: chunk.chunkIndex,
+        }));
+
+    const chunksUsed = isNotFound
+      ? []
+      : matchedChunks.map((chunk) => chunk.chunkId);
+
+    return {
+      answer: aiResponse,
+      citations,
+      chunksUsed,
+    };
+  } catch (error) {
+    // console.error("Error inside queryDocumentService:", error);
+    throw error;
+  }
 };
