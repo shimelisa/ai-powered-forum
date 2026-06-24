@@ -133,7 +133,7 @@ export const queryDocumentController = async (req, res, next) => {
     });
     res.status(200).json({
       success: true,
-      message: "Answer and citations",
+      message: "Answer and citations generated successfully.",
       data,
     });
   } catch (error) {

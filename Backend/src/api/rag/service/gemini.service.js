@@ -51,11 +51,6 @@ export const generateEmbedding = async (text, options = {}) => {
   }
 };
 
-
-
-
-
-
 export const generateAnswer = async (prompt) => {
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
     throw new Error("Prompt is required for answer generation");
@@ -84,13 +79,30 @@ export const generateAnswer = async (prompt) => {
 };
 
 
+//AI Query Grounded answer From Rag Chunks---ed
+export const answerFromRagChunksService = async (query, contextText) => {
+  try {
+const prompt = `You are an assistant that answers questions strictly based on provided document excerpts.
+If the answer is not in the excerpts, say "This document does not cover that topic."
 
+Document excerpts:
+${contextText}
 
+Question: ${query}
 
+Answer (cite excerpt numbers like [1], [2] where relevant):`;
 
+    const response = await ai.models.generateContent({
+      model: GEMINI_TEXT_MODEL,
+      contents: prompt,
+    });
 
+    if (!response || !response.text) {
+      throw new Error("Failed to receive a valid generation text block response from Gemini.");
+    }
 
-export default {
-  generateEmbedding,
-  generateAnswer,
+    return response.text.trim();
+  } catch (error) {
+    throw new Error(`Gemini Integration Failure: ${error.message}`);
+  }
 };
