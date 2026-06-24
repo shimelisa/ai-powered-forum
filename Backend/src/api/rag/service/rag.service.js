@@ -422,6 +422,7 @@ export const queryDocumentService = async ({ documentId, userId, query }) => {
       documentId,
       userId,
       query,
+      k: 5,
     });
 
     const matchedChunks = searchResponse?.results || [];
@@ -463,7 +464,45 @@ export const queryDocumentService = async ({ documentId, userId, query }) => {
       chunksUsed,
     };
   } catch (error) {
-    // console.error("Error inside queryDocumentService:", error);
     throw error;
   }
 };
+// export const queryDocumentService = async ({ documentId, userId, query }) => {
+//   const { results } = await searchInDocumentService({
+//     documentId,
+//     userId,
+//     query,
+//     k: 5,
+//   });
+
+//   if (results.length === 0) {
+//     return {
+//       answer: "No relevant content found in this document for your query.",
+//       citations: [],
+//       chunksUsed: [],
+//     };
+//   }
+
+//   const context = results.map((r, i) => `[${i + 1}] ${r.excerpt}`).join("\n\n");
+
+//   const prompt = `You are an assistant that answers questions strictly based on provided document excerpts.
+// If the answer is not in the excerpts, say "This document does not cover that topic."
+
+// Document excerpts:
+// ${context}
+
+// Question: ${query}
+
+// Answer (cite excerpt numbers like [1], [2] where relevant):`;
+
+//  const answer = await generateAnswer(prompt);
+
+//   return {
+//     answer,
+//     citations: results.map((r, i) => ({
+//       ref: i + 1,
+//       chunkIndex: r.chunkIndex,
+//     })),
+//     chunksUsed: results.map((r) => r.chunkId),
+//   };
+// };

@@ -103,7 +103,6 @@ Answer (cite excerpt numbers like [1], [2] where relevant):`;
 
     return response.text.trim();
   } catch (error) {
-    // console.error("Error inside answerFromRagChunksService:", error);
     throw new Error(`Gemini Integration Failure: ${error.message}`);
   }
 };
