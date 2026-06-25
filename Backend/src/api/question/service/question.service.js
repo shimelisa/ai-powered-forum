@@ -1,5 +1,5 @@
-import { BadRequestError, NotFoundError } from "../../../utils/errors/index.js"; // Fixed extension
-import { safeExecute } from "../../../../db/config.js"; // Fixed path step-back
+import { BadRequestError, NotFoundError } from "../../../utils/errors/index.js"; 
+import { safeExecute } from "../../../../db/config.js"; 
 import crypto from "crypto";
 import {
   normalizeQuestionText,

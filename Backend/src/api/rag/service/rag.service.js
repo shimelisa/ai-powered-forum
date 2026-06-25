@@ -358,7 +358,6 @@ export const queryDocumentService = async ({ documentId, userId, query }) => {
     query,
     k: 5,
   });
-
   if (results.length === 0) {
     return {
       answer: "No relevant content found in this document for your query.",
@@ -366,7 +365,6 @@ export const queryDocumentService = async ({ documentId, userId, query }) => {
       chunksUsed: [],
     };
   }
-
   const context = results.map((r, i) => `[${i + 1}] ${r.excerpt}`).join("\n\n");
 
   const prompt = `You are an assistant that answers questions strictly based on provided document excerpts.
@@ -470,57 +468,57 @@ export const deleteDocumentService = async (documentId, userId) => {
 };
 //AI Query Grounded in RAG system document service----ed
 
-export const queryDocumentService = async ({ documentId, userId, query }) => {
-  try {
-    const searchResponse = await searchInDocumentService({
-      documentId,
-      userId,
-      query,
-      k: 5,
-    });
+// export const queryDocumentService = async ({ documentId, userId, query }) => {
+//   try {
+//     const searchResponse = await searchInDocumentService({
+//       documentId,
+//       userId,
+//       query,
+//       k: 5,
+//     });
 
-    const matchedChunks = searchResponse?.results || [];
-    if (matchedChunks.length === 0) {
-      const error = new Error(
-        "No relevant document content found for this query based on threshold criteria.",
-      );
-      error.statusCode = 404;
-      throw error;
-    }
-    const contextText = matchedChunks
-      .map((chunk) => `[Chunk #${chunk.chunkIndex}]: ${chunk.excerpt || ""}`)
-      .join("\n\n");
+//     const matchedChunks = searchResponse?.results || [];
+//     if (matchedChunks.length === 0) {
+//       const error = new Error(
+//         "No relevant document content found for this query based on threshold criteria.",
+//       );
+//       error.statusCode = 404;
+//       throw error;
+//     }
+//     const contextText = matchedChunks
+//       .map((chunk) => `[Chunk #${chunk.chunkIndex}]: ${chunk.excerpt || ""}`)
+//       .join("\n\n");
 
-    const aiResponse = await answerFromRagChunksService(query, contextText);
+//     const aiResponse = await answerFromRagChunksService(query, contextText);
 
-    //Define fallback/low-confidence keywords or exact phrases
-    const lowerResponse = aiResponse.toLowerCase();
-    const isNotFound =
-      lowerResponse.includes("does not cover") ||
-      lowerResponse.includes("cannot find") ||
-      lowerResponse.includes("no information");
+//     //Define fallback/low-confidence keywords or exact phrases
+//     const lowerResponse = aiResponse.toLowerCase();
+//     const isNotFound =
+//       lowerResponse.includes("does not cover") ||
+//       lowerResponse.includes("cannot find") ||
+//       lowerResponse.includes("no information");
 
-    //Conditionally populate citations and chunksUsed
-    const citations = isNotFound
-      ? []
-      : matchedChunks.map((chunk, index) => ({
-          ref: index + 1,
-          chunkIndex: chunk.chunkIndex,
-        }));
+//     //Conditionally populate citations and chunksUsed
+//     const citations = isNotFound
+//       ? []
+//       : matchedChunks.map((chunk, index) => ({
+//           ref: index + 1,
+//           chunkIndex: chunk.chunkIndex,
+//         }));
 
-    const chunksUsed = isNotFound
-      ? []
-      : matchedChunks.map((chunk) => chunk.chunkId);
+//     const chunksUsed = isNotFound
+//       ? []
+//       : matchedChunks.map((chunk) => chunk.chunkId);
 
-    return {
-      answer: aiResponse,
-      citations,
-      chunksUsed,
-    };
-  } catch (error) {
-    throw error;
-  }
-};
+//     return {
+//       answer: aiResponse,
+//       citations,
+//       chunksUsed,
+//     };
+//   } catch (error) {
+//     throw error;
+//   }
+// };
 // export const queryDocumentService = async ({ documentId, userId, query }) => {
 //   const { results } = await searchInDocumentService({
 //     documentId,

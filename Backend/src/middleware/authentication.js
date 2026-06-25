@@ -25,7 +25,7 @@ export const authenticateUser = (req, res, next) => {
     };
     next();
   } catch (error) {
-    console.log("❌ Token verification failed:", error.message);
+    console.log(" Token verification failed:", error.message);
     throw new UnauthenticatedError("Authentication invalid");
   }
 };

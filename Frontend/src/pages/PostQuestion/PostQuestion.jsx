@@ -417,6 +417,7 @@ export default function PostQuestion() {
                   <textarea
                     ref={textareaRef}
                     id="content"
+                    
                     name="content"
                     placeholder="Include all the information someone would need to answer your question... You can use Markdown to format your code!"
                     className={styles.postQuestion__formTextarea}

@@ -42,7 +42,7 @@ export const createDocumentController = async (req, res, next) => {
       data: document,
     });
   } catch (error) {
-    console.error("❌ Controller error:", error);
+    console.error(" Controller error:", error);
     next(error);
   }
 };
