@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { timeAgo, isAuthoredByUser } from "../../lib/utils";
 import styles from "./QuestionCard.module.css";
+import ReactMarkdown from "react-markdown"
 
 export default function QuestionCard({ question }) {
   const navigate = useNavigate();
@@ -54,8 +55,12 @@ export default function QuestionCard({ question }) {
         </div>
 
         {question.content && (
-          <p className={styles.card__description}>{question.content}</p>
+          <div className={styles.card__description}>
+            <ReactMarkdown>{question.content}</ReactMarkdown>
+          </div>
         )}
+
+
 
         <div className={styles.card__meta}>
           <span className={styles.card__metaItem}>

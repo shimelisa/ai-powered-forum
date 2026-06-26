@@ -668,3 +668,12 @@
     margin-left: auto;
   }
 }
+
+.footerBtn:active {
+  transform: scale(0.95);
+}
+
+.footerBtn.success {
+  background-color: #10b981;
+  color: white;
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Sparkles, Share2, MessageSquare, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -16,6 +16,7 @@ const QuestionDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+    const textareaRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -26,6 +27,7 @@ const QuestionDetail = () => {
   const [fitResult, setFitResult] = useState(null);
   const [error, setError] = useState(null);
   const [postError, setPostError] = useState(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const isOwnQuestion = user?.id === question?.author?.id;
 
@@ -132,6 +134,31 @@ const QuestionDetail = () => {
       setFitLoading(false);
     }
   };
+  const insertMarkdown = (before, after, placeholder) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = answerText.substring(start, end);
+    
+    // If text is selected, wrap it
+    const textToInsert = selectedText || placeholder;
+    const newText = 
+      answerText.substring(0, start) + 
+      before + textToInsert + after + 
+      answerText.substring(end);
+    
+    setAnswerText(newText);
+    
+    // Set cursor position after insertion
+    setTimeout(() => {
+      const newCursorPos = start + before.length + textToInsert.length;
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
 
   const getInitials = (firstName = "", lastName = "") =>
     `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "?";
@@ -141,6 +168,32 @@ const QuestionDetail = () => {
     const idx = name.charCodeAt(0) % colors.length;
     return colors[idx];
   };
+
+  const handleShare = async () => {
+    const url = window.location.href; // Gets full current URL
+    
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopySuccess(true);
+      
+      // Reset success message after 2 seconds
+      setTimeout(() => {
+        setCopySuccess(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy URL:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -197,10 +250,11 @@ const QuestionDetail = () => {
           </div>
 
           <div className={styles.questionFooter}>
-            <button className={styles.footerBtn}>
+                      <button className={styles.footerBtn} onClick={handleShare}>
               <Share2 size={14} />
-              Share
+              {copySuccess ? 'Link Copied!' : 'Share'}
             </button>
+
             <button className={styles.footerBtn}>
               <MessageSquare size={14} />
               {answers.length} {answers.length === 1 ? "Answer" : "Answers"}
@@ -251,13 +305,13 @@ const QuestionDetail = () => {
             <h3 className={styles.contributeHeading}>Contribute an answer</h3>
             <form onSubmit={handlePostAnswer}>
               {/* Markdown toolbar */}
-              <div className={styles.toolbar}>
+                      <div className={styles.toolbar}>
                 <div className={styles.toolbarActions}>
                   <button
                     type="button"
                     className={styles.toolbarBtn}
                     title="Bold"
-                    onClick={() => setAnswerText((t) => t + "**bold**")}
+                    onClick={() => insertMarkdown("**", "**", "bold text")}
                   >
                     <strong>B</strong>
                   </button>
@@ -265,7 +319,7 @@ const QuestionDetail = () => {
                     type="button"
                     className={styles.toolbarBtn}
                     title="Italic"
-                    onClick={() => setAnswerText((t) => t + "_italic_")}
+                    onClick={() => insertMarkdown("_", "_", "italic text")}
                   >
                     <em>I</em>
                   </button>
@@ -273,7 +327,7 @@ const QuestionDetail = () => {
                     type="button"
                     className={styles.toolbarBtn}
                     title="Code"
-                    onClick={() => setAnswerText((t) => t + "`code`")}
+                    onClick={() => insertMarkdown("`", "`", "code")}
                   >
                     {"</>"}
                   </button>
@@ -281,7 +335,7 @@ const QuestionDetail = () => {
                     type="button"
                     className={styles.toolbarBtn}
                     title="Link"
-                    onClick={() => setAnswerText((t) => t + "[text](url)")}
+                    onClick={() => insertMarkdown("[", "](url)", "link text")}
                   >
                     🔗
                   </button>
@@ -292,6 +346,7 @@ const QuestionDetail = () => {
               </div>
 
               <textarea
+                ref={textareaRef}
                 className={styles.answerTextarea}
                 rows={7}
                 placeholder="Write your answer here..."
@@ -299,6 +354,7 @@ const QuestionDetail = () => {
                 onChange={(e) => setAnswerText(e.target.value)}
                 disabled={submitting}
               />
+
 
               {/* Bottom action row */}
               <div className={styles.actionRow}>
