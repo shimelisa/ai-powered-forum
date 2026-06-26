@@ -121,45 +121,7 @@ const generateEmbeddings = async (chunks) => {
   return embeddings;
 };
 
-/**
- * Extract text from PDF using pdf2json
- */
-// const extractTextFromPDF = (pdfBuffer) => {
-//   return new Promise((resolve, reject) => {
-//     const pdfParser = new PDFParser();
 
-//     pdfParser.on("pdfParser_dataError", (errData) => {
-//       reject(new Error(`PDF parsing error: ${errData.parserError}`));
-//     });
-
-//     pdfParser.on("pdfParser_dataReady", (pdfData) => {
-//       try {
-//         let fullText = "";
-//         if (pdfData && pdfData.Pages) {
-//           for (const page of pdfData.Pages) {
-//             if (page.Texts) {
-//               for (const text of page.Texts) {
-//                 if (text.R) {
-//                   for (const line of text.R) {
-//                     if (line.T) {
-//                       fullText += safeDecodeURIComponent(line.T) + " ";
-//                     }
-//                   }
-//                 }
-//               }
-//               fullText += "\n";
-//             }
-//           }
-//         }
-//         resolve(fullText.trim());
-//       } catch (error) {
-//         reject(new Error(`Failed to extract text: ${error.message}`));
-//       }
-//     });
-
-//     pdfParser.parseBuffer(pdfBuffer);
-//   });
-// };
 
 const extractTextFromPDF = async (pdfBuffer) => {
   const parser = new PDFParse({ data: pdfBuffer });
@@ -351,43 +313,43 @@ export const listDocumentsForUserService = async (userId) => {
 };
 
 //AI Query Grounded in RAG system document service----ed
-export const queryDocumentService = async ({ documentId, userId, query }) => {
-  const { results } = await searchInDocumentService({
-    documentId,
-    userId,
-    query,
-    k: 5,
-  });
-  if (results.length === 0) {
-    return {
-      answer: "No relevant content found in this document for your query.",
-      citations: [],
-      chunksUsed: [],
-    };
-  }
-  const context = results.map((r, i) => `[${i + 1}] ${r.excerpt}`).join("\n\n");
+// export const queryDocumentService = async ({ documentId, userId, query }) => {
+//   const { results } = await searchInDocumentService({
+//     documentId,
+//     userId,
+//     query,
+//     k: 5,
+//   });
+//   if (results.length === 0) {
+//     return {
+//       answer: "No relevant content found in this document for your query.",
+//       citations: [],
+//       chunksUsed: [],
+//     };
+//   }
+//   const context = results.map((r, i) => `[${i + 1}] ${r.excerpt}`).join("\n\n");
 
-  const prompt = `You are an assistant that answers questions strictly based on provided document excerpts.
-If the answer is not in the excerpts, say "This document does not cover that topic."
+//   const prompt = `You are an assistant that answers questions strictly based on provided document excerpts.
+// If the answer is not in the excerpts, say "This document does not cover that topic."
 
-Document excerpts:
-${context}
+// Document excerpts:
+// ${context}
 
-Question: ${query}
+// Question: ${query}
 
-Answer (cite excerpt numbers like [1], [2] where relevant):`;
+// Answer (cite excerpt numbers like [1], [2] where relevant):`;
 
-  const answer = await generateAnswer(prompt);
+//   const answer = await generateAnswer(prompt);
 
-  return {
-    answer,
-    citations: results.map((r, i) => ({
-      ref: i + 1,
-      chunkIndex: r.chunkIndex,
-    })),
-    chunksUsed: results.map((r) => r.chunkId),
-  };
-};
+//   return {
+//     answer,
+//     citations: results.map((r, i) => ({
+//       ref: i + 1,
+//       chunkIndex: r.chunkIndex,
+//     })),
+//     chunksUsed: results.map((r) => r.chunkId),
+//   };
+// };
 
 const SEARCH_SIMILARITY_THRESHOLD =
   Number(process.env.RAG_SEARCH_THRESHOLD) || 0.5;
@@ -466,95 +428,50 @@ export const deleteDocumentService = async (documentId, userId) => {
 
   return document;
 };
-//AI Query Grounded in RAG system document service----ed
 
-// export const queryDocumentService = async ({ documentId, userId, query }) => {
-//   try {
-//     const searchResponse = await searchInDocumentService({
-//       documentId,
-//       userId,
-//       query,
-//       k: 5,
-//     });
-
-//     const matchedChunks = searchResponse?.results || [];
-//     if (matchedChunks.length === 0) {
-//       const error = new Error(
-//         "No relevant document content found for this query based on threshold criteria.",
-//       );
-//       error.statusCode = 404;
-//       throw error;
-//     }
-//     const contextText = matchedChunks
-//       .map((chunk) => `[Chunk #${chunk.chunkIndex}]: ${chunk.excerpt || ""}`)
-//       .join("\n\n");
-
-//     const aiResponse = await answerFromRagChunksService(query, contextText);
-
-//     //Define fallback/low-confidence keywords or exact phrases
-//     const lowerResponse = aiResponse.toLowerCase();
-//     const isNotFound =
-//       lowerResponse.includes("does not cover") ||
-//       lowerResponse.includes("cannot find") ||
-//       lowerResponse.includes("no information");
-
-//     //Conditionally populate citations and chunksUsed
-//     const citations = isNotFound
-//       ? []
-//       : matchedChunks.map((chunk, index) => ({
-//           ref: index + 1,
-//           chunkIndex: chunk.chunkIndex,
-//         }));
-
-//     const chunksUsed = isNotFound
-//       ? []
-//       : matchedChunks.map((chunk) => chunk.chunkId);
-
-//     return {
-//       answer: aiResponse,
-//       citations,
-//       chunksUsed,
-//     };
-//   } catch (error) {
-//     throw error;
-//   }
-// };
-// export const queryDocumentService = async ({ documentId, userId, query }) => {
-//   const { results } = await searchInDocumentService({
-//     documentId,
-//     userId,
-//     query,
-//     k: 5,
-//   });
-
-//   if (results.length === 0) {
-//     return {
-//       answer: "No relevant content found in this document for your query.",
-//       citations: [],
-//       chunksUsed: [],
-//     };
-//   }
-
-//   const context = results.map((r, i) => `[${i + 1}] ${r.excerpt}`).join("\n\n");
-
-//   const prompt = `You are an assistant that answers questions strictly based on provided document excerpts.
-// If the answer is not in the excerpts, say "This document does not cover that topic."
-
-// Document excerpts:
-// ${context}
-
-// Question: ${query}
-
-// Answer (cite excerpt numbers like [1], [2] where relevant):`;
-
-//  const answer = await generateAnswer(prompt);
-
-//   return {
-//     answer,
-//     citations: results.map((r, i) => ({
-//       ref: i + 1,
-//       chunkIndex: r.chunkIndex,
-//     })),
-//     chunksUsed: results.map((r) => r.chunkId),
-//   };
-// };
+//AI Query Grounded in RAG system document service
+export const queryDocumentService = async ({ documentId, userId, query }) => {
+  try {
+    const searchResponse = await searchInDocumentService({
+      documentId,
+      userId,
+      query,
+      k: 5,
+    });
+    const matchedChunks = searchResponse?.results || [];
+    if (matchedChunks.length === 0) {
+      const error = new Error(
+        "No relevant document content found for this query based on threshold criteria.",
+      );
+      error.statusCode = 404;
+      throw error;
+    }
+    const contextText = matchedChunks
+      .map((chunk) => `[Chunk #${chunk.chunkIndex}]: ${chunk.excerpt || ""}`)
+      .join("\n\n");
+    const aiResponse = await answerFromRagChunksService(query, contextText);
+    //Define fallback/low-confidence keywords or exact phrases
+    const lowerResponse = aiResponse.toLowerCase();
+    const isNotFound =
+      lowerResponse.includes("does not cover") ||
+      lowerResponse.includes("cannot find") ||
+      lowerResponse.includes("no information");
+    //Conditionally populate citations and chunksUsed
+    const citations = isNotFound
+      ? []
+      : matchedChunks.map((chunk, index) => ({
+          ref: index + 1,
+          chunkIndex: chunk.chunkIndex,
+        }));
+    const chunksUsed = isNotFound
+      ? []
+      : matchedChunks.map((chunk) => chunk.chunkId);
+    return {
+      answer: aiResponse,
+      citations,
+      chunksUsed,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
