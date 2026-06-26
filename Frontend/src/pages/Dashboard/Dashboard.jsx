@@ -18,6 +18,8 @@ export default function Dashboard() {
   const [questions, setQuestions]   = useState([]);
   const [isLoading, setIsLoading]   = useState(true);
   const [error, setError]           = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const questionsPerPage = 10;
   const [stats, setStats]           = useState({
     totalQuestions: 0,
     totalReplies:   0,
@@ -47,6 +49,10 @@ export default function Dashboard() {
     }
   }, [user?.id]);
 
+
+  useEffect(() => {
+  setCurrentPage(1);
+}, [questions]);
   /* ── Search ──────────────────────────────────────────────────────────────── */
   const performSearch = useCallback(async (query, mode) => {
     if (!query.trim()) { fetchQuestions(); return; }
@@ -83,6 +89,17 @@ export default function Dashboard() {
   const handleClearSearch = () => navigate('/dashboard');
 
   const activeQuery = searchParams.get('q') || searchParams.get('semantic');
+
+const indexOfLastQuestion = currentPage * questionsPerPage;
+const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
+
+const currentQuestions = questions.slice(
+  indexOfFirstQuestion,
+  indexOfLastQuestion
+);
+
+const totalPages = Math.ceil(questions.length / questionsPerPage);
+
 
   /* ── Render ──────────────────────────────────────────────────────────────── */
   return (
@@ -217,10 +234,50 @@ export default function Dashboard() {
                 {questions.length} question{questions.length !== 1 ? 's' : ''}
               </p>
               <div className={styles.cardsContainer}>
-                {questions.map((question) => (
-                  <QuestionCard key={question.questionHash} question={question} />
-                ))}
+              {currentQuestions.map((question) => (
+  <QuestionCard key={question.questionHash} question={question} />
+))}
               </div>
+
+             {totalPages > 1 && (
+  <div className={styles.pagination}>
+    
+    <button
+      onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+      disabled={currentPage === 1}
+      className={styles.pageBtn}
+    >
+      Previous
+    </button>
+
+    <div className={styles.pageNumbers}>
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+        <button
+          key={num}
+          onClick={() => setCurrentPage(num)}
+          className={`${styles.pageBtn} ${
+            currentPage === num ? styles.activePage : ""
+          }`}
+        >
+          {num}
+        </button>
+      ))}
+    </div>
+
+    <button
+      onClick={() =>
+        setCurrentPage((p) => Math.min(p + 1, totalPages))
+      }
+      disabled={currentPage === totalPages}
+      className={styles.pageBtn}
+    >
+      Next
+    </button>
+
+  </div>
+)}
+  
+
             </div>
           )}
 
