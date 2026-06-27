@@ -344,3 +344,64 @@
     color: rgb(239, 68, 68);
     /* text-red-500 */
 }
+
+/*responsiveness*/
+
+/* Mobile menu button (hamburger) */
+.mobileMenuButton {
+  display: block;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 60;
+  background-color: var(--primary);
+  color: var(--text-inverse);
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
+}
+
+.mobileMenuButton:hover {
+  background-color: var(--primary-hover);
+  transform: scale(1.05);
+}
+
+/* Hide hamburger on desktop */
+@media (min-width: 1024px) {
+  .mobileMenuButton {
+    display: none;
+  }
+}
+
+/* Overlay for mobile menu */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+  backdrop-filter: blur(2px);
+}
+
+@media (max-width: 1023px) {
+  .overlay {
+    display: block;
+  }
+}
+
+/* Mobile: Hide sidebar by default */
+@media (max-width: 1023px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  /* Show sidebar when open */
+  .sidebarOpen {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+}
