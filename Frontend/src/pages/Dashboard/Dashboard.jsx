@@ -27,7 +27,7 @@ export default function Dashboard() {
     yours:          0,
   });
 
-  /* ── Fetch all questions ─────────────────────────────────────────────────── */
+  /*  Fetch all questions */
   const fetchQuestions = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -53,7 +53,7 @@ export default function Dashboard() {
   useEffect(() => {
   setCurrentPage(1);
 }, [questions]);
-  /* ── Search ──────────────────────────────────────────────────────────────── */
+  /*Search */
   const performSearch = useCallback(async (query, mode) => {
     if (!query.trim()) { fetchQuestions(); return; }
 
@@ -76,7 +76,7 @@ export default function Dashboard() {
     }
   }, [fetchQuestions]);
 
-  /* ── React to URL param changes ──────────────────────────────────────────── */
+  /*  React to URL param changes */
   useEffect(() => {
     const keywordQuery  = searchParams.get('q');
     const semanticQuery = searchParams.get('semantic');
@@ -101,11 +101,11 @@ const currentQuestions = questions.slice(
 const totalPages = Math.ceil(questions.length / questionsPerPage);
 
 
-  /* ── Render ──────────────────────────────────────────────────────────────── */
+  /* Render */
   return (
     <div className={styles.dashboard}>
 
-       {/* Hero ──────────────────────────────────────────────────────────────── */}
+       {/* Hero */}
       {!activeQuery && (
         <div className={styles.heroSection}>
           <span className={styles.breadcrumb}>Forum Home</span>
@@ -119,7 +119,7 @@ const totalPages = Math.ceil(questions.length / questionsPerPage);
         </div>
       )}
 
-         {/* Action cards ──────────────────────────────────────────────────────── */}
+         {/* Action cards */}
       {!activeQuery && (
         <div className={styles.actionCards}>
           <div className={styles.actionCard} onClick={() => navigate('/questions/ask')}>
@@ -149,7 +149,7 @@ const totalPages = Math.ceil(questions.length / questionsPerPage);
       )}
 
 
-      {/* Stats bar ─────────────────────────────────────────────────────────── */}
+      {/* Stats bar */}
            {!isLoading && !error && !activeQuery && (
         <div className={styles.statsBar}>
           <p className={styles.statsDescription}>
@@ -176,7 +176,7 @@ const totalPages = Math.ceil(questions.length / questionsPerPage);
         </div>
       )}
 
-      {/* Discussion feed ────────────────────────────────────────────────────── */}
+      {/* Discussion feed */}
       <div className={styles.discussionFeed}>
         <div className={styles.feedHeader}>
           <div>

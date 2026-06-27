@@ -3,7 +3,7 @@ import { authenticateUser } from "../../../middleware/authentication.js";
 // Fixed: Added config/ folder
 import {
   uploadRagDocument,
-  createDocumentMulterErrorHandler,
+  createDocumentMulterErrorHandler, uploadRagDocumentWithErrorHandling,
 } from "../config/rag.upload.config.js";
 import {
   createDocumentController,
@@ -21,24 +21,15 @@ import { searchInDocumentValidation } from "../validation/rag.validation.js";
 
 const router = express.Router();
 
-// ============================================================
-// DOCUMENT ROUTES - CREATE/UPLOAD ONLY
-// ============================================================
+// Upload document route
 
-// Upload document
 router.post(
   "/",
   authenticateUser,
-  (req, res, next) => {
-    uploadRagDocument.single("file")(req, res, (err) => {
-      if (err) {
-        return createDocumentMulterErrorHandler(err, req, res, next);
-      }
-      next();
-    });
-  },
+  uploadRagDocumentWithErrorHandling,
   createDocumentController,
 );
+
 
 router.get("/", authenticateUser, listDocumentsController);
 
@@ -61,7 +52,7 @@ router.get(
   getDocumentFileController,
 );
 
-//AI Query Grounded RAG system route----ed
+//AI Query Grounded RAG system route
 router.post(
   "/:documentId/query",
   authenticateUser,

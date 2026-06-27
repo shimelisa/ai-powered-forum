@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import {
   FileText,
   Trash2,
-  Search,
   Sparkles,
   Loader2,
   AlertCircle,
@@ -17,6 +16,7 @@ import {
   queryDocument,
   fetchPdfObjectUrl,
 } from "../../services/rag/rag.service";
+
 import styles from "./RagDocuments.module.css";
 
 
@@ -31,7 +31,6 @@ const RagDocuments = () => {
   // Document list
   const [documents, setDocuments] = useState([]);
   const [listLoading, setListLoading] = useState(true);
-  const [listNotAvailable, setListNotAvailable] = useState(false);
 
   // Upload
   const [selectedFile, setSelectedFile] = useState(null);
@@ -46,7 +45,6 @@ const RagDocuments = () => {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState(null);
-  const [previewNotAvailable, setPreviewNotAvailable] = useState(false);
   const prevPdfUrlRef = useRef(null);
 
   // Semantic search
@@ -54,36 +52,31 @@ const RagDocuments = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [searchError, setSearchError] = useState(null);
-  const [searchNotAvailable, setSearchNotAvailable] = useState(false);
 
   // Ask with AI
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiAnswer, setAiAnswer] = useState(null);
   const [aiError, setAiError] = useState(null);
-  const [aiNotAvailable, setAiNotAvailable] = useState(false);
 
-  // ── Fetch document list on mount ──────────────────────────
+  // Fetch document list on mount
   useEffect(() => {
     const load = async () => {
       try {
         setListLoading(true);
         const res = await listDocuments();
         setDocuments(res.data || []);
-      } catch (err) {
-        if (err.isNotImplemented) {
-          setListNotAvailable(true);
-        }
-        // Either way, fall back to an empty session-only library
+      } catch (err){
         setDocuments([]);
-      } finally {
+      }
+       finally {
         setListLoading(false);
       }
     };
     load();
   }, []);
 
-  // ── Revoke blob URL on cleanup or doc change ──────────────
+  //  Revoke blob URL on cleanup or doc change
   useEffect(() => {
     return () => {
       if (prevPdfUrlRef.current) {
@@ -91,6 +84,7 @@ const RagDocuments = () => {
       }
     };
   }, [activeDoc]);
+
 
   // Load the preview automatically whenever a document is selected,
   // and reset all per-document panels.
@@ -101,15 +95,12 @@ const RagDocuments = () => {
     }
     setPdfUrl(null);
     setPdfError(null);
-    setPreviewNotAvailable(false);
     setSearchResults([]);
     setSearchQuery("");
     setSearchError(null);
-    setSearchNotAvailable(false);
     setAiAnswer(null);
     setAiQuery("");
     setAiError(null);
-    setAiNotAvailable(false);
     setActiveDoc(doc);
 
     if (doc.status !== "ready") return;
@@ -121,28 +112,49 @@ const RagDocuments = () => {
       const url = URL.createObjectURL(blob);
       prevPdfUrlRef.current = url;
       setPdfUrl(url);
-    } catch (err) {
-      if (err.isNotImplemented) {
-        setPreviewNotAvailable(true);
-      } else {
-        setPdfError(err.message || "Could not load PDF preview.");
-      }
+   } catch (err) {
+  setPdfError(err.message || "Could not load PDF preview.");
+
     } finally {
       setPdfLoading(false);
     }
   };
 
-  // ── Upload ───────
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setUploadError(null);
-    }
-  };
+const handleFileChange = (e) => {
+  const file = e.target.files[0];
+  
+  if (!file) return;
+  
+  setUploadError(null);
+  
+  if (file.type !== 'application/pdf') {
+    setUploadError('Only PDF files are allowed.');
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    return;
+  }
+  
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    setUploadError(`File too large. Maximum size is 10MB. Your file is ${formatBytes(file.size)}.`);
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    return;
+  }
+  
+  setSelectedFile(file);
+};
+
 
   const handleUpload = async () => {
     if (!selectedFile) return;
+
+  const isDuplicate = documents.some(doc => doc.title === selectedFile.name);
+  if (isDuplicate) {
+    setUploadError(`File "${selectedFile.name}"File With this name already exists in your library.`);
+    return;
+  }
+
     try {
       setUploading(true);
       setUploadError(null);
@@ -157,7 +169,7 @@ const RagDocuments = () => {
     }
   };
 
-  // ── Delete ──
+  // Delete
   const handleDelete = async (e, docId) => {
     e.stopPropagation();
     if (!window.confirm("Delete this document? This cannot be undone.")) return;
@@ -168,62 +180,51 @@ const RagDocuments = () => {
         setActiveDoc(null);
         setPdfUrl(null);
       }
-    } catch (err) {
-      if (err.isNotImplemented) {
-        alert(
-          "Deleting isn't available yet — the backend doesn't have a delete endpoint.",
-        );
-      }
-    }
+   } catch (err) {
+  alert(err.message || "Failed to delete document. Please try again.");
+}
   };
 
-  // ── Semantic search ──
+  // Semantic search
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim() || !activeDoc) return;
     setSearchLoading(true);
     setSearchResults([]);
     setSearchError(null);
-    setSearchNotAvailable(false);
     try {
       const res = await searchInDocument(activeDoc.id, searchQuery.trim());
       setSearchResults(res.data || []);
-    } catch (err) {
-      if (err.isNotImplemented) {
-        setSearchNotAvailable(true);
-      } else {
-        setSearchError("Search failed.");
-      }
-    } finally {
+  } catch (err) {
+  setSearchError(err.message || "Search failed.");
+}
+ finally {
       setSearchLoading(false);
     }
   };
 
-  // ── Ask with AI ──
+  // Ask with AI
   const handleAsk = async (e) => {
     e.preventDefault();
     if (!aiQuery.trim() || !activeDoc) return;
     setAiLoading(true);
     setAiAnswer(null);
     setAiError(null);
-    setAiNotAvailable(false);
+
     try {
       const res = await queryDocument(activeDoc.id, aiQuery.trim());
       setAiAnswer(res.data);
-    } catch (err) {
-      if (err.isNotImplemented) {
-        setAiNotAvailable(true);
-      } else {
-        setAiError("Ask failed.");
-      }
-    } finally {
+   } catch (err) {
+  setAiError(err.message || "Ask failed.");
+}
+ finally {
       setAiLoading(false);
     }
   };
 
   return (
     <div className={styles.page}>
-      {/* ── Page header ── */}
+      {/* Page header*/}
       <div className={styles.pageHeader}>
         <span className={styles.eyebrow}>KNOWLEDGE BASE</span>
         <h1 className={styles.pageTitle}>Private PDF library</h1>
@@ -234,7 +235,7 @@ const RagDocuments = () => {
         </p>
       </div>
 
-      {/* ── Two-column workspace ── */}
+      {/* Two-column workspace */}
       <div className={styles.workspace}>
         {/* Left column — library */}
         <aside className={styles.library}>
@@ -248,7 +249,9 @@ const RagDocuments = () => {
             <p className={styles.uploadNote}>
               Accepted format: PDF. Maximum file size is enforced by the server.
             </p>
-            <div className={styles.uploadActions}>
+
+              <div className={uploading ? styles.uploadActionsUploading : styles.uploadActions}>
+
               <button
                 className={styles.chooseFileBtn}
                 onClick={() => fileInputRef.current?.click()}
@@ -357,7 +360,7 @@ const RagDocuments = () => {
 </div>
 
           )}
-        </aside>.
+        </aside>
 
         {/* Right column — Reader + Search + Ask, stacked */}
         <main className={styles.viewer}>
@@ -370,41 +373,44 @@ const RagDocuments = () => {
             </div>
           ) : (
             <div className={styles.panelStack}>
-              {/* ── Reader ── */}
+              {/*Reader  */}
               <section className={styles.panel}>
                 <h2 className={styles.panelTitle}>Reader</h2>
                 <p className={styles.panelSubtitle}>Inline preview of the selected PDF.</p>
 
                 <div className={styles.readerFrame}>
-                  {activeDoc.status === "failed" && (
+  {activeDoc.status === "processing" && (
+    <div className={styles.readerMessage}>
+      <Loader2 size={18} className={styles.spin} />
+      Document is being processed. This may take a few minutes...
+    </div>
+  )}
+  {activeDoc.status === "failed" && (
+
                     <div className={styles.readerMessage}>
                       <AlertCircle size={18} />
                       Processing failed
                       {activeDoc.errorMessage ? `: ${activeDoc.errorMessage}` : "."}
                     </div>
                   )}
-                  {activeDoc.status !== "failed" && previewNotAvailable && (
-                    <div className={styles.readerMessage}>
-                      Preview isn't available yet — the backend doesn't have a file-streaming
-                      endpoint for this document.
-                    </div>
-                  )}
-                  {activeDoc.status !== "failed" && !previewNotAvailable && pdfLoading && (
+               
+                  {activeDoc.status !== "failed" && activeDoc.status !== "processing"  && pdfLoading && (
+
                     <div className={styles.readerMessage}>Loading document preview...</div>
                   )}
-                  {activeDoc.status !== "failed" && !previewNotAvailable && pdfError && (
+                  {activeDoc.status !== "failed" && activeDoc.status !== "processing"  && pdfError && (
                     <div className={styles.readerMessage}>{pdfError}</div>
                   )}
-                  {activeDoc.status !== "failed" &&
-                    !previewNotAvailable &&
-                    !pdfLoading &&
-                    pdfUrl && (
+                 {activeDoc.status !== "failed" && activeDoc.status !== "processing"
+   &&
+  !pdfLoading &&
+  pdfUrl && (
                       <iframe src={pdfUrl} className={styles.pdfFrame} title="PDF Preview" />
                     )}
                 </div>
               </section>
 
-              {/* ── Semantic search ── */}
+              {/* Semantic search */}
               <section className={styles.panel}>
                 <h2 className={styles.panelTitle}>Semantic search</h2>
                 <p className={styles.panelSubtitle}>
@@ -435,13 +441,7 @@ const RagDocuments = () => {
                   </button>
                 </form>
 
-                {searchNotAvailable && (
-                  <div className={styles.notAvailableBanner}>
-                    Semantic search isn't connected yet — the backend doesn't have a search
-                    endpoint for this document.
-                  </div>
-                )}
-                {searchError && !searchNotAvailable && (
+                {searchError && (
                   <div className={styles.errorBanner}>{searchError}</div>
                 )}
 
@@ -466,7 +466,7 @@ const RagDocuments = () => {
                 )}
               </section>
 
-              {/* ── Ask with AI ── */}
+              {/* Ask with AI */}
               <section className={styles.panel}>
                 <h2 className={styles.panelTitle}>Ask with AI</h2>
                 <p className={styles.panelSubtitle}>
@@ -499,13 +499,7 @@ const RagDocuments = () => {
                   </button>
                 </form>
 
-                {aiNotAvailable && (
-                  <div className={styles.notAvailableBanner}>
-                    Ask with AI isn't connected yet — the backend doesn't have a query endpoint for
-                    this document.
-                  </div>
-                )}
-                {aiError && !aiNotAvailable && (
+                {aiError  && (
                   <div className={styles.errorBanner}>{aiError}</div>
                 )}
 

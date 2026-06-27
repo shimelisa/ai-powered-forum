@@ -109,9 +109,18 @@
 
 .uploadActions {
   display: flex;
-  flex-direction: row;
+  flex-direction: row; 
   gap: 8px;
+  transition: all 0.2s ease;
 }
+
+.uploadActionsUploading {
+  display: flex;
+  flex-direction: column; 
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
 
 .chooseFileBtn {
   display: inline-flex;
