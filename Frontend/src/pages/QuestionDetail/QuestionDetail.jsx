@@ -16,7 +16,7 @@ const QuestionDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-    const textareaRef = useRef(null);
+  const textareaRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -142,7 +142,6 @@ const QuestionDetail = () => {
     const end = textarea.selectionEnd;
     const selectedText = answerText.substring(start, end);
     
-    // If text is selected, wrap it
     const textToInsert = selectedText || placeholder;
     const newText = 
       answerText.substring(0, start) + 
@@ -151,7 +150,7 @@ const QuestionDetail = () => {
     
     setAnswerText(newText);
     
-    // Set cursor position after insertion
+   
     setTimeout(() => {
       const newCursorPos = start + before.length + textToInsert.length;
       textarea.focus();
@@ -170,19 +169,18 @@ const QuestionDetail = () => {
   };
 
   const handleShare = async () => {
-    const url = window.location.href; // Gets full current URL
-    
+    const url = window.location.href; 
     try {
       await navigator.clipboard.writeText(url);
       setCopySuccess(true);
       
-      // Reset success message after 2 seconds
+     
       setTimeout(() => {
         setCopySuccess(false);
       }, 2000);
     } catch (err) {
       console.error('Failed to copy URL:', err);
-      // Fallback for older browsers
+    
       const textArea = document.createElement('textarea');
       textArea.value = url;
       document.body.appendChild(textArea);
