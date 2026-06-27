@@ -5,7 +5,7 @@ import {
   ServiceUnavailableError,
 } from "../../../utils/errors/index.js"; // Combined error imports, dropped circular import
 
-// ─── AI Configuration
+// AI Configuration
 
 const GEMINI_EMBEDDING_MODEL =
   process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001";

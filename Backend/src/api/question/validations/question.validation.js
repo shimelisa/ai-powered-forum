@@ -8,7 +8,7 @@ export const createQuestionValidation = [
     .withMessage("Title is required")
     .isString()
     .withMessage("Title must be a string")
-    .isLength({ min: 5, max: 150 })
+    .isLength({ min: 5, max: 255 })
     .withMessage("Title must be between 5 and 150 characters")
     .trim(),
   body("content")

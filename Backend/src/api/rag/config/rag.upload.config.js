@@ -45,7 +45,7 @@ export const uploadRagDocument = multer({
 export const createDocumentMulterErrorHandler = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'FILE_TOO_LARGE' || err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(StatusCodes.PAYLOAD_TOO_LARGE).json({
+     return res.status(StatusCodes.REQUEST_TOO_LONG).json({
         success: false,
         message: 'File too large. Maximum size is 10MB.'
       });
@@ -70,4 +70,15 @@ export const createDocumentMulterErrorHandler = (err, req, res, next) => {
   }
   
   next(err);
+};
+
+
+
+export const uploadRagDocumentWithErrorHandling = (req, res, next) => {
+  uploadRagDocument.single("file")(req, res, (err) => {
+    if (err) {
+      return createDocumentMulterErrorHandler(err, req, res, next);
+    }
+    next();
+  });
 };

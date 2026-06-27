@@ -10,9 +10,7 @@ import {
 } from "./vector.service.js";
 import { answerFromRagChunksService } from "./gemini.service.js";
 
-// ============================================================
 // Helper Functions
-// ============================================================
 
 const safeDecodeURIComponent = (str) => {
   try {
@@ -22,7 +20,7 @@ const safeDecodeURIComponent = (str) => {
   }
 };
 
-// ── Helper: resolve storage_path safely ─────────────────────────────────────
+// Helper: resolve storage_path safely
 /**
  * Converts a relative storage_path to an absolute path.
  * Uses process.cwd() (backend root) to avoid path doubling on Windows.
@@ -37,7 +35,7 @@ const resolveStoragePath = (storagePath) => {
   return path.join(process.cwd(), storagePath);
 };
 
-// ── Shared: assertOwnedDocument ──────────────────────────────────────────────
+//Shared: assertOwnedDocument
 /**
  * Verifies that a document exists and belongs to the requesting user.
  * Reusable across all RAG controllers (file, search, query, delete, meta).
@@ -130,9 +128,8 @@ const extractTextFromPDF = async (pdfBuffer) => {
   return rawText.trim();
 };
 
-// ============================================================
 // Main Service: Create Document from Upload
-// ============================================================
+
 
 export const createDocumentFromUploadService = async ({ file, userId }) => {
   let documentId = null;
