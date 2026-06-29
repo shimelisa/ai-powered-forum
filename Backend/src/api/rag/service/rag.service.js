@@ -131,6 +131,128 @@ const extractTextFromPDF = async (pdfBuffer) => {
 // Main Service: Create Document from Upload
 
 
+// export const createDocumentFromUploadService = async ({ file, userId }) => {
+//   let documentId = null;
+//   const connection = await db.getConnection();
+
+//   try {
+//     // 1. Validate file
+//     if (!file) {
+//       throw new Error("No file provided");
+//     }
+
+//     if (file.mimetype !== "application/pdf") {
+//       throw new Error("Only PDF files are allowed");
+//     }
+
+//     // 2. Read file
+//     const fileBuffer = await fs.readFile(file.path);
+//     const fileSize = fileBuffer.length;
+
+//     // 3. Create initial document record with status 'pending'
+//     const [result] = await connection.execute(
+//       `INSERT INTO documents (user_id, title, mime_type, storage_path, byte_size, status, created_at, updated_at) 
+//        VALUES (?, ?, ?, ?, ?, 'processing', NOW(), NOW())`,
+//       [userId, file.originalname, file.mimetype, file.path, fileSize],
+//     );
+
+//     documentId = result.insertId;
+
+//     // 4. Parse PDF using pdf2json
+//     let pdfText;
+//     try {
+//       pdfText = await extractTextFromPDF(fileBuffer);
+//     } catch (error) {
+//       throw new Error(`Failed to parse PDF: ${error.message}`);
+//     }
+
+//     // 5. Chunk text
+//     const chunks = chunkText(pdfText, 1000, 150);
+
+//     if (chunks.length === 0) {
+//       throw new Error("No text content extracted from PDF");
+//     }
+
+//     // 6. Generate embeddings using Gemini service
+//     let embeddings;
+//     try {
+//       embeddings = await generateEmbeddings(chunks);
+//     } catch (error) {
+//       throw new Error(`Failed to generate embeddings: ${error.message}`);
+//     }
+
+//     // 7. Store chunks and vectors in database
+//     try {
+//       // Start transaction
+//       await connection.beginTransaction();
+
+//       // Insert chunks and vectors
+//       for (let i = 0; i < chunks.length; i++) {
+//         // Insert chunk
+//         const [chunkResult] = await connection.execute(
+//           `INSERT INTO document_chunks (document_id, chunk_index, content, created_at) 
+//            VALUES (?, ?, ?, NOW())`,
+//           [documentId, i, chunks[i]],
+//         );
+
+//         const chunkId = chunkResult.insertId;
+
+//         // Insert vector
+//         await connection.execute(
+//           `INSERT INTO document_chunk_vectors (chunk_id, source_text, embedding, status, created_at, updated_at) 
+//            VALUES (?, ?, ?, 'ready', NOW(), NOW())`,
+//           [chunkId, chunks[i], JSON.stringify(embeddings[i])],
+//         );
+//       }
+
+//       // Commit transaction
+//       await connection.commit();
+//     } catch (error) {
+//       // Rollback on error
+//       await connection.rollback();
+//       throw new Error(`Failed to store chunks and vectors: ${error.message}`);
+//     }
+
+//     // 8. Update document status to 'ready'
+//     await connection.execute(
+//       `UPDATE documents SET status = 'ready', error_message = NULL, updated_at = NOW() 
+//        WHERE document_id = ?`,
+//       [documentId],
+//     );
+
+//     // Get the updated document
+//     const [rows] = await connection.execute(
+//       `SELECT * FROM documents WHERE document_id = ?`,
+//       [documentId],
+//     );
+
+//     return rows[0];
+//   } catch (error) {
+//     console.error(" Error processing document:", error);
+
+//     // Update document status to 'failed' if document was created
+//     if (documentId) {
+//       try {
+//         await connection.execute(
+//           `UPDATE documents SET status = 'failed', error_message = ?, updated_at = NOW() 
+//            WHERE document_id = ?`,
+//           [error.message, documentId],
+//         );
+//       } catch (updateError) {
+//         console.error(" Error updating document status:", updateError);
+//       }
+//     }
+
+//     throw error;
+//   } finally {
+//     connection.release();
+//   }
+// };
+
+
+
+
+
 export const createDocumentFromUploadService = async ({ file, userId }) => {
   let documentId = null;
   const connection = await db.getConnection();
@@ -158,7 +280,38 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
 
     documentId = result.insertId;
 
-    // 4. Parse PDF using pdf2json
+    // 4. Get document and return immediately
+    const [rows] = await connection.execute(
+      `SELECT * FROM documents WHERE document_id = ?`,
+      [documentId],
+    );
+
+    // 5. Start background processing (don't wait)
+    setImmediate(() => {
+      processDocumentInBackground(documentId, fileBuffer, file.path).catch((error) => {
+        console.error(`Background processing failed for document ${documentId}:`, error);
+      });
+    });
+
+    // 6. Return immediately with status='pending'
+    return rows[0];
+
+  } catch (error) {
+    console.error("Error creating document:", error);
+    throw error;
+  } finally {
+    connection.release();
+  }
+};
+
+// Background processing function
+const processDocumentInBackground = async (documentId, fileBuffer, filePath) => {
+  const connection = await db.getConnection();
+  
+  try {
+    console.log(`Processing document ${documentId} in background...`);
+
+    // 1. Parse PDF
     let pdfText;
     try {
       pdfText = await extractTextFromPDF(fileBuffer);
@@ -166,14 +319,13 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
       throw new Error(`Failed to parse PDF: ${error.message}`);
     }
 
-    // 5. Chunk text
+    // 2. Chunk text
     const chunks = chunkText(pdfText, 1000, 150);
-
     if (chunks.length === 0) {
       throw new Error("No text content extracted from PDF");
     }
 
-    // 6. Generate embeddings using Gemini service
+    // 3. Generate embeddings
     let embeddings;
     try {
       embeddings = await generateEmbeddings(chunks);
@@ -181,14 +333,11 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
       throw new Error(`Failed to generate embeddings: ${error.message}`);
     }
 
-    // 7. Store chunks and vectors in database
+    // 4. Store chunks and vectors
     try {
-      // Start transaction
       await connection.beginTransaction();
 
-      // Insert chunks and vectors
       for (let i = 0; i < chunks.length; i++) {
-        // Insert chunk
         const [chunkResult] = await connection.execute(
           `INSERT INTO document_chunks (document_id, chunk_index, content, created_at) 
            VALUES (?, ?, ?, NOW())`,
@@ -197,7 +346,6 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
 
         const chunkId = chunkResult.insertId;
 
-        // Insert vector
         await connection.execute(
           `INSERT INTO document_chunk_vectors (chunk_id, source_text, embedding, status, created_at, updated_at) 
            VALUES (?, ?, ?, 'ready', NOW(), NOW())`,
@@ -205,49 +353,41 @@ export const createDocumentFromUploadService = async ({ file, userId }) => {
         );
       }
 
-      // Commit transaction
       await connection.commit();
     } catch (error) {
-      // Rollback on error
       await connection.rollback();
       throw new Error(`Failed to store chunks and vectors: ${error.message}`);
     }
 
-    // 8. Update document status to 'ready'
+    // 5. Update status to 'ready'
     await connection.execute(
       `UPDATE documents SET status = 'ready', error_message = NULL, updated_at = NOW() 
        WHERE document_id = ?`,
       [documentId],
     );
 
-    // Get the updated document
-    const [rows] = await connection.execute(
-      `SELECT * FROM documents WHERE document_id = ?`,
-      [documentId],
-    );
+    console.log(`✅ Document ${documentId} processed successfully`);
 
-    return rows[0];
   } catch (error) {
-    console.error(" Error processing document:", error);
+    console.error(` Error processing document ${documentId}:`, error);
 
-    // Update document status to 'failed' if document was created
-    if (documentId) {
-      try {
-        await connection.execute(
-          `UPDATE documents SET status = 'failed', error_message = ?, updated_at = NOW() 
-           WHERE document_id = ?`,
-          [error.message, documentId],
-        );
-      } catch (updateError) {
-        console.error(" Error updating document status:", updateError);
-      }
+    // Update status to 'failed'
+    try {
+      await connection.execute(
+        `UPDATE documents SET status = 'failed', error_message = ?, updated_at = NOW() 
+         WHERE document_id = ?`,
+        [error.message, documentId],
+      );
+    } catch (updateError) {
+      console.error("Error updating document status:", updateError);
     }
-
-    throw error;
   } finally {
     connection.release();
   }
 };
+
+
+
 
 /**
  * Service to fetch metadata for a single RAG document.

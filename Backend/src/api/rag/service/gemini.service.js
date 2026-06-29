@@ -1,8 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 const GEMINI_TEXT_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash-lite";
-// ============================================================
+
 // CONFIGURATION
-// ============================================================
+
 
 const GEMINI_EMBEDDING_MODEL = process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -13,9 +13,7 @@ if (!GEMINI_API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
-// ============================================================
 // EMBEDDING GENERATION
-// ============================================================
 
 export const generateEmbedding = async (text, options = {}) => {
   if (!text || typeof text !== 'string' || text.trim().length === 0) {
