@@ -85,7 +85,6 @@ const RagDocuments = () => {
     };
   }, [activeDoc]);
 
-
 // Poll for processing documents every 3 seconds
 useEffect(() => {
   const hasProcessing = documents.some(doc => 
@@ -97,7 +96,14 @@ useEffect(() => {
   const interval = setInterval(async () => {
     try {
       const res = await listDocuments();
-      setDocuments(res.data || []);
+      const newDocs = res.data || [];
+      setDocuments(newDocs);
+      
+      setActiveDoc(prev => {
+        if (!prev) return prev;
+        const updated = newDocs.find(d => d.id === prev.id);
+        return updated || prev;
+      });
     } catch (err) {
       console.error('Poll error:', err);
     }
@@ -105,6 +111,30 @@ useEffect(() => {
   
   return () => clearInterval(interval);
 }, [documents]);
+
+// Load PDF when document becomes ready
+useEffect(() => {
+  if (!activeDoc) return;
+  if (activeDoc.status !== 'ready') return;
+  if (pdfUrl) return; // Already loaded
+  
+  const loadPdf = async () => {
+    setPdfLoading(true);
+    try {
+      const res = await fetchPdfObjectUrl(activeDoc.id);
+      const blob = new Blob([res.data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      prevPdfUrlRef.current = url;
+      setPdfUrl(url);
+    } catch (err) {
+      setPdfError(err.message || "Could not load PDF preview.");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+  
+  loadPdf();
+}, [activeDoc?.status, activeDoc?.id]);
 
   // Load the preview automatically whenever a document is selected,
   // and reset all per-document panels.
@@ -412,34 +442,28 @@ const handleFileChange = (e) => {
                 <p className={styles.panelSubtitle}>Inline preview of the selected PDF.</p>
 
                 <div className={styles.readerFrame}>
-  {activeDoc.status === "processing" && (
-    <div className={styles.readerMessage}>
-      <Loader2 size={18} className={styles.spin} />
-      Document is being processed. This may take a few minutes...
-    </div>
-  )}
-  {activeDoc.status === "failed" && (
+     
 
-                    <div className={styles.readerMessage}>
-                      <AlertCircle size={18} />
-                      Processing failed
-                      {activeDoc.errorMessage ? `: ${activeDoc.errorMessage}` : "."}
-                    </div>
-                  )}
-               
-                  {activeDoc.status !== "failed" && activeDoc.status !== "processing"  && pdfLoading && (
+{activeDoc.status === "failed" && (
+  <div className={styles.readerMessage}>
+    <AlertCircle size={18} />
+    Processing failed
+    {activeDoc.errorMessage ? `: ${activeDoc.errorMessage}` : "."}
+  </div>
+)}
 
-                    <div className={styles.readerMessage}>Loading document preview...</div>
-                  )}
-                  {activeDoc.status !== "failed" && activeDoc.status !== "processing"  && pdfError && (
-                    <div className={styles.readerMessage}>{pdfError}</div>
-                  )}
-                 {activeDoc.status !== "failed" && activeDoc.status !== "processing"
-   &&
-  !pdfLoading &&
-  pdfUrl && (
-                      <iframe src={pdfUrl} className={styles.pdfFrame} title="PDF Preview" />
-                    )}
+{activeDoc.status !== "failed" && pdfLoading && (
+  <div className={styles.readerMessage}>Loading document preview...</div>
+)}
+
+{activeDoc.status !== "failed" && pdfError && (
+  <div className={styles.readerMessage}>{pdfError}</div>
+)}
+
+{activeDoc.status !== "failed" && !pdfLoading && pdfUrl && (
+  <iframe src={pdfUrl} className={styles.pdfFrame} title="PDF Preview" />
+)}
+
                 </div>
               </section>
 
