@@ -131,7 +131,14 @@ export const getSimilarQuestionsController = async (req, res, next) => {
   }
 };
 
-// Controller for getting single question details
+/**
+ * Handles requests to retrieve details for a single question.
+ *
+ * @param {import('express').Request} req The Express request object.
+ * @param {import('express').Response} res The Express response object.
+ * @param {import('express').NextFunction} next The Express next function.
+ * @returns {Promise<void>}
+ */
 export const getSingleQuestionController = async (req, res, next) => {
   try {
     const { questionHash } = req.params;

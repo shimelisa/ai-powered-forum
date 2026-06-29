@@ -84,7 +84,11 @@ router.get(
   getSimilarQuestionsController,
 );
 
-// Single question details
+/**
+ * @route GET /api/questions/:questionHash/
+ * @desc Fetch a specific question and all its associated answers.
+ * @access Private   
+ */
 router.get(
   "/:questionHash",
   authenticateUser,

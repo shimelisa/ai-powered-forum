@@ -121,7 +121,14 @@ export const listDocumentsController = async (req, res, next) => {
   }
 };
 
-//AI Query Grounded in RAG document controller
+/**
+ * Handles incoming RAG (Retrieval-Augmented Generation) query requests for a specific document.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next function.
+ * @returns {Promise<void>}
+ */
 export const queryDocumentController = async (req, res, next) => {
   try {
     const { documentId } = req.params;
