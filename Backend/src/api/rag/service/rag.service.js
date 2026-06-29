@@ -529,10 +529,8 @@ export const deleteDocumentService = async (documentId, userId) => {
   return document;
 };
 
-//AI Query Grounded in RAG system document service
 /**
- * Service to orchestrate the RAG workflow by retrieving relevant text chunks from a document 
- * and generating a grounded AI response with associated context citations.
+ * Service to retrieving relevant text chunks from a document and generating a grounded AI response with associated context citations.
  *
  * @param {Object} params - The service parameter object.
  * @param {string|number} params.documentId - The unique identifier of the document being queried.
