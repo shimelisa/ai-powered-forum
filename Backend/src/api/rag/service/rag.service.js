@@ -251,8 +251,6 @@ const extractTextFromPDF = async (pdfBuffer) => {
 
 
 
-
-
 export const createDocumentFromUploadService = async ({ file, userId }) => {
   let documentId = null;
   const connection = await db.getConnection();
@@ -366,7 +364,7 @@ const processDocumentInBackground = async (documentId, fileBuffer, filePath) => 
       [documentId],
     );
 
-    console.log(`✅ Document ${documentId} processed successfully`);
+    console.log(` Document ${documentId} processed successfully`);
 
   } catch (error) {
     console.error(` Error processing document ${documentId}:`, error);
@@ -385,8 +383,6 @@ const processDocumentInBackground = async (documentId, fileBuffer, filePath) => 
     connection.release();
   }
 };
-
-
 
 
 /**
