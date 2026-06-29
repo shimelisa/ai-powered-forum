@@ -449,44 +449,7 @@ export const listDocumentsForUserService = async (userId) => {
   }));
 };
 
-//AI Query Grounded in RAG system document service----ed
-// export const queryDocumentService = async ({ documentId, userId, query }) => {
-//   const { results } = await searchInDocumentService({
-//     documentId,
-//     userId,
-//     query,
-//     k: 5,
-//   });
-//   if (results.length === 0) {
-//     return {
-//       answer: "No relevant content found in this document for your query.",
-//       citations: [],
-//       chunksUsed: [],
-//     };
-//   }
-//   const context = results.map((r, i) => `[${i + 1}] ${r.excerpt}`).join("\n\n");
 
-//   const prompt = `You are an assistant that answers questions strictly based on provided document excerpts.
-// If the answer is not in the excerpts, say "This document does not cover that topic."
-
-// Document excerpts:
-// ${context}
-
-// Question: ${query}
-
-// Answer (cite excerpt numbers like [1], [2] where relevant):`;
-
-//   const answer = await generateAnswer(prompt);
-
-//   return {
-//     answer,
-//     citations: results.map((r, i) => ({
-//       ref: i + 1,
-//       chunkIndex: r.chunkIndex,
-//     })),
-//     chunksUsed: results.map((r) => r.chunkId),
-//   };
-// };
 
 const SEARCH_SIMILARITY_THRESHOLD =
   Number(process.env.RAG_SEARCH_THRESHOLD) || 0.5;
@@ -566,7 +529,16 @@ export const deleteDocumentService = async (documentId, userId) => {
   return document;
 };
 
-//AI Query Grounded in RAG system document service
+/**
+ * Service to retrieving relevant text chunks from a document and generating a grounded AI response with associated context citations.
+ *
+ * @param {Object} params - The service parameter object.
+ * @param {string|number} params.documentId - The unique identifier of the document being queried.
+ * @param {string|number} params.userId - The unique identifier of the user executing the query.
+ * @param {string} params.query - The user's natural language question.
+ * @throws {Error} If no text chunks match the query criteria (attaches a 404 statusCode).
+ * @returns {Promise<Object>} An object containing the generated answer, citations array, and an array of chunk IDs used.
+ */
 export const queryDocumentService = async ({ documentId, userId, query }) => {
   try {
     const searchResponse = await searchInDocumentService({

@@ -229,7 +229,14 @@ export const getSimilarQuestionsService = async ({
   };
 };
 
-// Service for getting single question details
+/**
+ * Service to retrieve details for a specific question by its hash, including its associated answers.
+ *
+ * @param {Object} params The service parameter object.
+ * @param {string} params.questionHash The unique hash identifying the question.
+ * @throws {NotFoundError} If no question matches the provided hash.
+ * @returns {Promise<Object>} An object containing the formatted question details, list of answers, and answer metadata.
+ */
 export const getSingleQuestionService = async ({
   questionHash,
   includeAnswers = true,
