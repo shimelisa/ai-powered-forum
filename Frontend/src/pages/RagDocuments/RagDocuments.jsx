@@ -86,6 +86,26 @@ const RagDocuments = () => {
   }, [activeDoc]);
 
 
+// Poll for processing documents every 3 seconds
+useEffect(() => {
+  const hasProcessing = documents.some(doc => 
+    doc.status === 'processing' || doc.status === 'pending'
+  );
+  
+  if (!hasProcessing) return;
+  
+  const interval = setInterval(async () => {
+    try {
+      const res = await listDocuments();
+      setDocuments(res.data || []);
+    } catch (err) {
+      console.error('Poll error:', err);
+    }
+  }, 3000);
+  
+  return () => clearInterval(interval);
+}, [documents]);
+
   // Load the preview automatically whenever a document is selected,
   // and reset all per-document panels.
   const handleSelectDoc = async (doc) => {
@@ -126,14 +146,14 @@ const handleFileChange = (e) => {
   if (!file) return;
   
   setUploadError(null);
-  
+  //file type check
   if (file.type !== 'application/pdf') {
     setUploadError('Only PDF files are allowed.');
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     return;
   }
-  
+  // file size check
   const maxSize = 10 * 1024 * 1024; // 10MB
   if (file.size > maxSize) {
     setUploadError(`File too large. Maximum size is 10MB. Your file is ${formatBytes(file.size)}.`);
@@ -151,14 +171,20 @@ const handleFileChange = (e) => {
 
   const isDuplicate = documents.some(doc => doc.title === selectedFile.name);
   if (isDuplicate) {
-    setUploadError(`File "${selectedFile.name}"File With this name already exists in your library.`);
+    setUploadError(`File "${selectedFile.name}" already exists in your library.`);
     return;
   }
 
     try {
       setUploading(true);
       setUploadError(null);
-      const newDoc = await uploadPdf(selectedFile);
+
+
+ const [newDoc] = await Promise.all([
+      uploadPdf(selectedFile),
+      new Promise(resolve => setTimeout(resolve, 1000))
+    ]);
+      // const newDoc = await uploadPdf(selectedFile);
       setDocuments((prev) => [newDoc, ...prev]);
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -338,7 +364,7 @@ const handleFileChange = (e) => {
                 : styles.statusProcessing
             }`}
           >
-            {(doc.status || "unknown").toUpperCase()}
+             {doc.status === "pending" ? "PROCESSING" : (doc.status || "unknown").toUpperCase()}
           </span>
         </div>
       </div>
@@ -363,7 +389,7 @@ const handleFileChange = (e) => {
         </aside>
 
         {/* Right column — Reader + Search + Ask, stacked */}
-        <main className={styles.viewer}>
+               <main className={styles.viewer}>
           {!activeDoc ? (
             <div className={styles.emptyViewer}>
               <p>
@@ -371,8 +397,15 @@ const handleFileChange = (e) => {
                 text, and ask questions with AI-assisted answers grounded in that file.
               </p>
             </div>
+          ) : (activeDoc.status === 'processing' || activeDoc.status === 'pending') ? (
+            <div className={styles.emptyViewer}>
+              <p>
+                This document is not ready for preview or AI tools. Current status: {activeDoc.status === 'pending' ? 'processing' : activeDoc.status}
+              </p>
+            </div>
           ) : (
             <div className={styles.panelStack}>
+
               {/*Reader  */}
               <section className={styles.panel}>
                 <h2 className={styles.panelTitle}>Reader</h2>
