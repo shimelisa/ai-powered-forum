@@ -59,6 +59,9 @@ async function fetchAssessAnswerResponse(prompt) {
     contents: prompt,
     config: {
       maxOutputTokens: 300,
+       temperature: 0.3,
+      responseMimeType: 'application/json'
+
     },
   });
   const text = response?.text;

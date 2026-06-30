@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import ReactMarkdown from 'react-markdown';
 import { useNavigate } from "react-router-dom";
 import {
   Send,
@@ -524,7 +525,7 @@ export default function PostQuestion() {
                               •
                             </span>
                             <span className={styles.postQuestion__coachTipText}>
-                              {tip}
+                            <ReactMarkdown>{tip}</ReactMarkdown>
                             </span>
                           </li>
                         ))}
