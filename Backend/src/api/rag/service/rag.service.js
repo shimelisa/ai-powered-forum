@@ -392,6 +392,15 @@ export const searchInDocumentService = async ({
 export const deleteDocumentService = async (documentId, userId) => {
   const document = await assertOwnedDocument(documentId, userId);
 
+
+// Delete physical file from disk
+const absolutePath = resolveStoragePath(document.storage_path);
+try {
+  await fs.unlink(absolutePath);
+} catch (err) {
+  console.warn(`Could not delete file: ${err.message}`);
+}
+
   await safeExecute(
     `
       DELETE FROM documents
