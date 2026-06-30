@@ -15,8 +15,8 @@ export const queryDocumentValidation = [
     .trim()
     .notEmpty()
     .withMessage("Query is required and must be a string")
-    .isLength({ min: 2 })
-    .withMessage("Query must be at least 2 characters"),
+    .isLength({ min: 8 })
+    .withMessage("Query must be at least 8 characters"),
   validationErrorHandler,
 ];
 
@@ -74,28 +74,7 @@ export const searchInDocumentValidation = [
     validationErrorHandler
 ];
 
-// // ============================================================
-// // QUERY DOCUMENT VALIDATION
-// // ============================================================
 
-// export const queryDocumentValidation = [
-//   param('documentId')
-//     .isInt({ min: 1 })
-//     .withMessage('Document ID must be a positive integer')
-//     .toInt(),
-//   body('query')
-//     .isString()
-//     .trim()
-//     .notEmpty()
-//     .withMessage('Query is required')
-//     .isLength({ min: 2 })
-//     .withMessage('Query must be at least 2 characters'),
-//   body('k')
-//     .optional()
-//     .isInt({ min: 1, max: 20 })
-//     .withMessage('k must be between 1 and 20')
-//     .toInt(),
-// ];
 
 // // ============================================================
 // // GLOBAL SEARCH VALIDATION
@@ -142,4 +121,3 @@ export const searchDocumentsValidation = [
 // // CREATE DOCUMENT VALIDATION
 // // ============================================================
 
-// export const createDocumentValidation = [];
