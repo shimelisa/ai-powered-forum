@@ -64,7 +64,7 @@ function handleRagError(error, action = "fetch") {
 function mapDocument(row) {
   if (!row) return null;
   return {
-    id: row.documentId ?? row.document_id ?? row.id, // ✅ Check camelCase first
+    id: row.documentId ?? row.document_id ?? row.id,
     userId: row.userId ?? row.user_id,
     title: row.title,
     mimeType: row.mimeType ?? row.mime_type,
