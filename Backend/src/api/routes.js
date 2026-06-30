@@ -4,8 +4,6 @@ import questionRoutes from "./question/routes/question.routes.js";
 import answersRoutes  from "./answers/routes/answer.routes.js";
 import ragRoutes from "./rag/routes/rag.routes.js";
 
-
-
 export const mainRouter = express.Router();
 
 // Authentication routes

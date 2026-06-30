@@ -257,11 +257,6 @@ export async function findSimilarQuestionsByText({ sourceText, threshold, k }) {
       taskType: "RETRIEVAL_QUERY",
     });
   } catch (error) {
-    console.error("=== GEMINI API ERROR DURING SEARCH ===");
-    console.error("Operation: findSimilarQuestionsByText");
-    console.error("Search text:", sourceText);
-    console.error("Error:", error);
-    console.error("======================================");
     throw new ServiceUnavailableError(
       "Failed to generate embedding for search query. Please try again later.",
     );
@@ -274,11 +269,6 @@ export async function findSimilarQuestionsByText({ sourceText, threshold, k }) {
   try {
     storedEmbeddings = await retrieveReadyEmbeddings();
   } catch (error) {
-    console.error("=== DATABASE ERROR DURING SEARCH ===");
-    console.error("Operation: findSimilarQuestionsByText");
-    console.error("Search text:", sourceText);
-    console.error("Error:", error);
-    console.error("====================================");
     throw error;
   }
 
@@ -344,11 +334,6 @@ export async function findSimilarQuestionsByText({ sourceText, threshold, k }) {
   try {
     rows = await safeExecute(sql, questionIds);
   } catch (error) {
-    console.error("=== DATABASE ERROR FETCHING QUESTION DETAILS ===");
-    console.error("Operation: findSimilarQuestionsByText - fetch details");
-    console.error("Question IDs:", questionIds);
-    console.error("Error:", error);
-    console.error("================================================");
     throw error;
   }
 
@@ -463,14 +448,6 @@ export async function findSimilarQuestionsByQuestionId({
     try {
       storedEmbeddings = await retrieveReadyEmbeddings();
     } catch (error) {
-      console.error("=== DATABASE ERROR DURING SIMILAR QUESTIONS SEARCH ===");
-      console.error(
-        "Operation: findSimilarQuestionsByQuestionId - retrieve embeddings",
-      );
-
-      console.error("Question ID:", questionId);
-      console.error("Error:", error);
-      console.error("================================");
       throw error;
     }
 
@@ -539,15 +516,6 @@ export async function findSimilarQuestionsByQuestionId({
     try {
       detailsRows = await safeExecute(detailsSql, questionIds);
     } catch (error) {
-      console.error("=== DATABASE ERROR FETCHING QUESTION DETAILS ===");
-      console.error(
-        "Operation: findSimilarQuestionsByQuestionId - fetch details",
-      );
-      console.error("Source Question ID:", questionId);
-      console.error("Target Question IDs:", questionIds);
-      console.error("SQL:", detailsSql.trim().replace(/\s+/g, " "));
-      console.error("Error:", error);
-      console.error("===============================");
       throw error;
     }
 
@@ -578,13 +546,6 @@ export async function findSimilarQuestionsByQuestionId({
         ...questionMap[String(result.questionId)],
       }));
   } catch (error) {
-    console.error("MYSQL FIND SIMILAR BY QUESTION ID ERROR =");
-    console.error("Operation: findSimilarQuestionsByQuestionId");
-    console.error("Question ID:", questionId);
-    console.error("SQL:", sql.trim().replace(/\s+/g, ""));
-    console.error("Error:", error);
-
-    console.error("==============================");
 
     throw error;
   }

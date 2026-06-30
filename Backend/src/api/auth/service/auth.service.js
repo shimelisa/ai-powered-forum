@@ -25,9 +25,8 @@ const normalizeEmail = email => email.trim().toLowerCase();
  * @returns {Promise<boolean>} True if the user exists, false otherwise.
  */
 export const checkUserExists = async email => {
-  const normalizedEmail = normalizeEmail(email);
   const sql = 'SELECT user_id FROM users WHERE email = ? LIMIT 1';
-  const rows = await safeExecute(sql, [normalizedEmail]);
+  const rows = await safeExecute(sql, email);
   return rows.length > 0;
 };
 
@@ -54,7 +53,7 @@ export const registerService = async ({
   }
 
   // every time we call bcrypt.genSalt, it generates a new random salt string.
-  const salt = await bcrypt.genSalt(10); // generates a unique random salt each call
+  const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
   const sql =
     'INSERT INTO users (first_name, last_name, email, password_hash) VALUES (?, ?, ?, ?)';
