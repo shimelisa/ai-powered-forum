@@ -5,9 +5,11 @@ import { timeAgo, isAuthoredByUser } from "../../lib/utils";
 import styles from "./QuestionCard.module.css";
 import ReactMarkdown from "react-markdown"
 
+
 export default function QuestionCard({ question }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+
 
   // 1. Core utility check
   let isOwn = isAuthoredByUser(question, user);
@@ -46,7 +48,13 @@ export default function QuestionCard({ question }) {
         }
       }}
     >
-      <div className={styles.card__avatar}>{initials || "?"}</div>
+<div className={styles.card__avatar}>
+  <img
+    src={`https://ui-avatars.com/api/?name=${question.author?.firstName || 'User'}+${question.author?.lastName || ''}&background=random&size=128`}
+    alt={initials}
+    referrerPolicy="no-referrer"
+  />
+</div>
 
       <div className={styles.card__body}>
         <div className={styles.card__header}>
