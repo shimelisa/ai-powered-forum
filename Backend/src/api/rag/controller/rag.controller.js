@@ -122,7 +122,7 @@ export const listDocumentsController = async (req, res, next) => {
 };
 
 /**
- * Handles incoming RAG (Retrieval-Augmented Generation) query requests for a specific document.
+ * Handles incoming query requests for a specific document.
  *
  * @param {import('express').Request} req - The Express request object.
  * @param {import('express').Response} res - The Express response object.
