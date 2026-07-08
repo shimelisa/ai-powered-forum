@@ -677,3 +677,34 @@
   background-color: #10b981;
   color: white;
 }
+/* Inline code - light gray background with orange text */
+.questionBody code,
+.answerBody code {
+  background: #f4f4f5;
+  color: #d97706;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-family: 'Courier New', Consolas, Monaco, monospace;
+  font-size: 0.9em;
+}
+
+/* Code blocks - light gray background */
+.questionBody pre,
+.answerBody pre {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+/* Code blocks text - orange */
+.questionBody pre code,
+.answerBody pre code {
+  background: transparent;
+  color: #ea580c;
+  padding: 0;
+  font-size: 0.95em;
+  line-height: 1.6;
+}

@@ -7,7 +7,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Edit, MessageSquare, BookOpen } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { questionService } from '../../services/questions/question.service';
-import QuestionCard from '../../components/QuestionCard/QuestionCard';
+import QuestionCard from '../../Components/QuestionCard/QuestionCard';
 import styles from './Dashboard.module.css';
 
 export default function Dashboard() {

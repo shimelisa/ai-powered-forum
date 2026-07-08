@@ -13,7 +13,12 @@ const port = process.env.PORT || 3777;
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      "http://localhost:5173", 
+      "http://localhost:5174",
+      "https://your-app.vercel.app", // Add your Vercel domain here
+      "https://your-custom-domain.com" // Add custom domain if you have one
+    ],
     credentials: true,
   }),
 );

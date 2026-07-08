@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { questionService } from "../../services/questions/question.service";
-import QuestionCard from "../../components/QuestionCard/QuestionCard";
+import QuestionCard from "../../Components/QuestionCard/QuestionCard";
 import ui from "../../styles/pageStates.module.css";
 import styles from "./MyQuestions.module.css";
 
