@@ -16,8 +16,7 @@ app.use(
     origin: [
       "http://localhost:5173", 
       "http://localhost:5174",
-      "https://your-app.vercel.app", // Add your Vercel domain here
-      "https://your-custom-domain.com" // Add custom domain if you have one
+      "https://ai-powered-evangadi-forum-psi.vercel.app"
     ],
     credentials: true,
   }),
