@@ -37,16 +37,7 @@ app.use(errorHandler);
 
 // Start server
 const startServer = async () => {
-  try {
-    // Debug: Log environment variables (hide sensitive data)
-    console.log("🔧 Environment Check:");
-    console.log(`   DB_HOST: ${process.env.DB_HOST}`);
-    console.log(`   DB_PORT: ${process.env.DB_PORT}`);
-    console.log(`   DB_USER: ${process.env.DB_USER}`);
-    console.log(`   DB_NAME: ${process.env.DB_NAME}`);
-    console.log(`   JWT_SECRET: ${process.env.JWT_SECRET ? '***SET***' : '***NOT SET***'}`);
-    console.log(`   GEMINI_API_KEY: ${process.env.GEMINI_API_KEY ? '***SET***' : '***NOT SET***'}`);
-    
+  try {     
     // Test database connection
     const connection = await db.getConnection();
 

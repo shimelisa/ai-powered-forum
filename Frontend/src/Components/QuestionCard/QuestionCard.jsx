@@ -5,6 +5,8 @@ import { timeAgo, isAuthoredByUser } from "../../lib/utils";
 import styles from "./QuestionCard.module.css";
 import ReactMarkdown from "react-markdown"
 
+const getAvatarUrl = (firstName, lastName) =>
+  `https://ui-avatars.com/api/?name=${firstName || "User"}+${lastName || ""}&background=random`;
 
 export default function QuestionCard({ question }) {
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ export default function QuestionCard({ question }) {
   return (
     <article
       // Using direct bracket notation to guarantee module string lookup
-      className={`${styles.card} ${isOwn ? styles['cardOwn'] : ""}`}
+      className={`${styles.card} ${isOwn ? styles["cardOwn"] : ""}`}
       onClick={() => navigate(`/question/${question.questionHash}`)}
       role="button"
       tabIndex={0}
@@ -47,19 +49,22 @@ export default function QuestionCard({ question }) {
           navigate(`/question/${question.questionHash}`);
         }
       }}
-    >
-<div className={styles.card__avatar}>
-  <img
-    src={`https://ui-avatars.com/api/?name=${question.author?.firstName || 'User'}+${question.author?.lastName || ''}&background=random&size=128`}
-    alt={initials}
-    referrerPolicy="no-referrer"
-  />
-</div>
+    >      
+      <div className={styles.card__avatar}>
+        <img
+          src={getAvatarUrl(
+            question.author?.firstName,
+            question.author?.lastName,
+          )}
+          alt={initials}
+          referrerPolicy="no-referrer"
+        />
+      </div>
 
       <div className={styles.card__body}>
         <div className={styles.card__header}>
           <h4 className={styles.card__title}>{question.title}</h4>
-          {isOwn && <span className={styles['card__badge']}>YOURS</span>}
+          {isOwn && <span className={styles["card__badge"]}>YOURS</span>}
         </div>
 
         {question.content && (
@@ -67,8 +72,6 @@ export default function QuestionCard({ question }) {
             <ReactMarkdown>{question.content}</ReactMarkdown>
           </div>
         )}
-
-
 
         <div className={styles.card__meta}>
           <span className={styles.card__metaItem}>
