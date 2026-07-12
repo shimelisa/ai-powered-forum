@@ -27,3 +27,4 @@ dist-ssr
 
 /src/generated/prisma
 uploads/documents
+.DS_Store
