@@ -162,11 +162,8 @@ const QuestionDetail = () => {
   const getInitials = (firstName = "", lastName = "") =>
     `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "?";
 
-  const avatarColor = (name = "") => {
-    const colors = ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#3b82f6"];
-    const idx = name.charCodeAt(0) % colors.length;
-    return colors[idx];
-  };
+  const getAvatarUrl = (firstName, lastName) =>
+    `https://ui-avatars.com/api/?name=${firstName || "User"}+${lastName || ""}&background=random`;
 
   const handleShare = async () => {
     const url = window.location.href; 
@@ -225,11 +222,18 @@ const QuestionDetail = () => {
         {/* Question card */}
         <article className={styles.questionCard}>
           <div className={styles.questionHeader}>
-            <div
-              className={styles.avatar}
-              style={{ background: avatarColor(question.author.firstName) }}
-            >
-              {getInitials(question.author.firstName, question.author.lastName)}
+            <div className={styles.avatar}>
+              <img
+                src={getAvatarUrl(
+                  question.author?.firstName,
+                  question.author?.lastName,
+                )}
+                alt={getInitials(
+                  question.author.firstName,
+                  question.author.lastName,
+                )}
+                referrerPolicy="no-referrer"
+              />
             </div>
             <div className={styles.questionMeta}>
               <span className={styles.authorName}>
@@ -248,9 +252,9 @@ const QuestionDetail = () => {
           </div>
 
           <div className={styles.questionFooter}>
-                      <button className={styles.footerBtn} onClick={handleShare}>
+            <button className={styles.footerBtn} onClick={handleShare}>
               <Share2 size={14} />
-              {copySuccess ? 'Link Copied!' : 'Share'}
+              {copySuccess ? "Link Copied!" : "Share"}
             </button>
 
             <button className={styles.footerBtn}>
@@ -275,11 +279,18 @@ const QuestionDetail = () => {
           {answers.map((answer) => (
             <div key={answer.id} className={styles.answerCard}>
               <div className={styles.answerHeader}>
-                <div
-                  className={styles.avatarSm}
-                  style={{ background: avatarColor(answer.author.firstName) }}
-                >
-                  {getInitials(answer.author.firstName, answer.author.lastName)}
+                <div className={styles.avatarSm}>
+                  <img
+                    src={getAvatarUrl(
+                      answer.author?.firstName,
+                      answer.author?.lastName,
+                    )}
+                    alt={getInitials(
+                      answer.author.firstName,
+                      answer.author.lastName,
+                    )}
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
                 <div>
                   <span className={styles.answerAuthor}>
@@ -303,7 +314,7 @@ const QuestionDetail = () => {
             <h3 className={styles.contributeHeading}>Contribute an answer</h3>
             <form onSubmit={handlePostAnswer}>
               {/* Markdown toolbar */}
-                      <div className={styles.toolbar}>
+              <div className={styles.toolbar}>
                 <div className={styles.toolbarActions}>
                   <button
                     type="button"
@@ -353,7 +364,6 @@ const QuestionDetail = () => {
                 disabled={submitting}
               />
 
-
               {/* Bottom action row */}
               <div className={styles.actionRow}>
                 <button
@@ -366,7 +376,8 @@ const QuestionDetail = () => {
                   {fitLoading ? "Evaluating..." : "Check draft fit"}
                 </button>
                 <span className={styles.fitHint}>
-                  Relevance only. Not grading correctness. You need at least 20 characters.
+                  Relevance only. Not grading correctness. You need at least 20
+                  characters.
                 </span>
                 <button
                   type="submit"
@@ -378,12 +389,12 @@ const QuestionDetail = () => {
               </div>
             </form>
 
-            {postError && (
-              <div className={styles.postError}>{postError}</div>
-            )}
+            {postError && <div className={styles.postError}>{postError}</div>}
 
             {fitResult && (
-              <div className={`${styles.fitPanel} ${styles[`fit_${fitResult.level}`]}`}>
+              <div
+                className={`${styles.fitPanel} ${styles[`fit_${fitResult.level}`]}`}
+              >
                 <span className={styles.fitBadge}>
                   AI Fit: {fitResult.level.toUpperCase()}
                 </span>
@@ -402,9 +413,8 @@ const QuestionDetail = () => {
 
         {!user && (
           <div className={styles.loginPrompt}>
-            Please{" "}
-            <button onClick={() => navigate("/login")}>log in</button> to post
-            an answer.
+            Please <button onClick={() => navigate("/login")}>log in</button> to
+            post an answer.
           </div>
         )}
       </div>

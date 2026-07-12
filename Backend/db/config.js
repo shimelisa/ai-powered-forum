@@ -9,12 +9,11 @@ const __dirname = path.dirname(__filename);
 
 // Database connection pool
 export const db = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER || "root",
-  // Double-check your .env: usually this variable is DB_PASSWORD, not DB_PASS
-  password: process.env.DB_PASS || "", 
-  database: process.env.DB_NAME || "evangadi_forum",
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS, 
+  database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

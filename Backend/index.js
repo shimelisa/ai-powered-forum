@@ -14,11 +14,11 @@ const port = process.env.PORT || 3777;
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", 
+      // "http://localhost:5173",
       "http://localhost:5174",
-      "https://ai-powered-evangadi-forum-psi.vercel.app",
-      /https:\/\/ai-powered-evangadi-.*\.vercel\.app$/ // Allow all Vercel preview deployments
-    ],
+      process.env.FRONTEND_URL,
+      /https:\/\/ai-powered-evangadi-.*\.vercel\.app$/, // Allow all Vercel preview deployments
+    ].filter(Boolean),
     credentials: true,
   }),
 );
@@ -35,13 +35,15 @@ app.use("/api", mainRouter);
 
 app.use(errorHandler);
 
+const DB_HOST_REMOTE = process.env.DB_HOST_REMOTE;
+
 // Start server
 const startServer = async () => {
   try {     
     // Test database connection
     const connection = await db.getConnection();
 
-    if (connection.config.host === "31.97.208.132") {
+    if (connection.config.host === DB_HOST_REMOTE) {
       console.log("Successfully connected to 'Remote' Database.");
     } else {
       console.log("Successfully connected to 'Local' Database.");
