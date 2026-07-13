@@ -10,7 +10,7 @@ const apiClient = axios.create({
     "Content-Type": "application/json",
   },
 });
-
+console.log(baseURL);
 /**
  * Request interceptor to attach the JWT token to headers.
  */
