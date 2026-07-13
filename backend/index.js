@@ -14,7 +14,7 @@ const port = process.env.PORT || 3777;
 app.use(
   cors({
     origin: [
-      // "http://localhost:5173",
+      "http://localhost:5173",
       "http://localhost:5174",
       process.env.FRONTEND_URL,
       /https:\/\/ai-powered-evangadi-.*\.vercel\.app$/, // Allow all Vercel preview deployments
