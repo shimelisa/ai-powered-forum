@@ -109,6 +109,25 @@ const createTables = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
+    // DOCUMENT Update
+//Migration: move RAG PDF storage from local disk into the database.
+// Run this once against an existing database that already has the old
+// `documents` table (storage_path NOT NULL, no file_data column).
+
+// Safe to run even if some columns already exist is NOT guaranteed by
+// MySQL for ADD COLUMN, so only run this if `file_data` does not exist yet.
+
+ALTER TABLE `documents`
+  MODIFY `storage_path` VARCHAR(1024) NULL,
+  ADD COLUMN `file_data` LONGBLOB NULL AFTER `storage_path`;
+
+// NOTE: any documents uploaded before this migration have no file_data
+// (their PDF bytes were only ever on the old server's disk, which may
+// already be gone). Their metadata rows are unaffected, but previewing
+// or re-downloading those specific files will fail — the affected users
+// will need to re-upload those PDFs. Newly uploaded documents (via the
+// updated backend) always write into file_data and are unaffected.
+
     // DOCUMENT CHUNKS
     await db.execute(`
       CREATE TABLE IF NOT EXISTS document_chunks (
