@@ -1,57 +1,69 @@
-import { StatusCodes } from "http-status-codes";
+/**
+ * @file rag.controller.js
+ * @description All RAG document controllers.
+ */
+
 import {
   createDocumentFromUploadService,
   listDocumentsForUserService,
   getDocumentMetaService,
-  queryDocumentService,
   getDocumentFileService,
   searchInDocumentService,
+  queryDocumentService,
   deleteDocumentService,
 } from "../service/rag.service.js";
 
-// ============================================================
-// CREATE / UPLOAD DOCUMENT
-// ============================================================
-
+// ── T-22: Upload & Process ───────────────────────────────────────────────────
+/**
+ * @route  POST /api/rag/documents
+ * @desc   Upload PDF, parse, chunk, embed, store
+ * @access Protected
+ */
 export const createDocumentController = async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        success: false,
-        message: "No file uploaded. Please upload a PDF file.",
-      });
+      return res
+        .status(400)
+        .json({ success: false, message: "No file uploaded." });
     }
-
-    const userId = req.user?.id;
-
-    if (!userId) {
-      return res.status(StatusCodes.UNAUTHORIZED).json({
-        success: false,
-        message: "User not authenticated.",
-      });
-    }
-
-    const document = await createDocumentFromUploadService({
+    const userId = req.user.id;
+    const data = await createDocumentFromUploadService({
       file: req.file,
-      userId: userId,
+      userId,
     });
-
-    return res.status(StatusCodes.CREATED).json({
+    res.status(201).json({
       success: true,
-      message: "Document uploaded and processed successfully.",
-      data: document,
+      message: "Document uploaded and processed.",
+      data,
     });
   } catch (error) {
-    console.error(" Controller error:", error);
     next(error);
   }
 };
 
+// ── T-24: List Documents ─────────────────────────────────────────────────────
 /**
- * GET /api/rag/documents
- * Returns all documents owned by the authenticated user.
- * @route   GET /api/rag/documents/:documentId
- * @desc    Fetch document metadata
+ * @route  GET /api/rag/documents
+ * @desc   List all documents for the logged-in user
+ * @access Protected
+ */
+export const listDocumentsController = async (req, res, next) => {
+  try {
+    const data = await listDocumentsForUserService(req.user.id);
+    res.status(200).json({
+      success: true,
+      message: "Documents fetched successfully.",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ── T-24: Get Metadata ───────────────────────────────────────────────────────
+/**
+ * @route  GET /api/rag/documents/:documentId
+ * @desc   Fetch document metadata
  * @access Protected
  */
 export const getDocumentMetaController = async (req, res, next) => {
@@ -70,9 +82,10 @@ export const getDocumentMetaController = async (req, res, next) => {
   }
 };
 
+// ── T-24: Stream File ────────────────────────────────────────────────────────
 /**
  * @route GET /api/rag/documents/:documentId/file
- * @desc Stream PDF file for browser preview
+ * @desc Stream PDF bytes (from DB, not disk) for browser preview
  * @access Protected
  * @param {import('express').Request} req
  * @param {import('express').Response} res
@@ -80,54 +93,53 @@ export const getDocumentMetaController = async (req, res, next) => {
  */
 export const getDocumentFileController = async (req, res, next) => {
   try {
-    const { absolutePath, title, mimeType } = await getDocumentFileService(
+    const { buffer, title, mimeType } = await getDocumentFileService(
       req.params.documentId,
       req.user.id,
     );
-    res.sendFile(
-      absolutePath,
-      {
-        headers: {
-          "Content-Type": mimeType,
-          "Content-Disposition": `inline; filename="${title}"`,
-        },
-      },
-      (err) => {
-        if (err) next(err);
-      },
-    );
+
+    res.set({
+      "Content-Type": mimeType,
+      "Content-Disposition": `inline; filename="${title}"`,
+      "Content-Length": buffer.length,
+    });
+    res.send(buffer);
   } catch (error) {
     next(error);
   }
 };
 
+// ── T-23: Semantic Search ────────────────────────────────────────────────────
 /**
- * GET /api/rag/documents
- * Returns all documents owned by the authenticated user.
+ * @route  GET /api/rag/documents/:documentId/search
+ * @desc   Semantic search within a document
+ * @access Protected
  */
-
-export const listDocumentsController = async (req, res, next) => {
+export const searchInDocumentController = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const documents = await listDocumentsForUserService(userId);
-
-    return res.status(200).json({
+    const { documentId } = req.params;
+    const { query, k } = req.query;
+    const data = await searchInDocumentService({
+      documentId,
+      userId: req.user.id,
+      query,
+      k: k ? parseInt(k, 10) : undefined,
+    });
+    res.status(200).json({
       success: true,
-      message: "Documents fetched successfully.",
-      data: documents,
+      message: "Ranked chunk excerpts",
+      data,
     });
   } catch (error) {
-    return next(error);
+    next(error);
   }
 };
 
+// ── T-23: AI Query ───────────────────────────────────────────────────────────
 /**
- * Handles incoming query requests for a specific document.
- *
- * @param {import('express').Request} req - The Express request object.
- * @param {import('express').Response} res - The Express response object.
- * @param {import('express').NextFunction} next - The Express next function.
- * @returns {Promise<void>}
+ * @route  POST /api/rag/documents/:documentId/query
+ * @desc   AI answer grounded in document chunks
+ * @access Protected
  */
 export const queryDocumentController = async (req, res, next) => {
   try {
@@ -140,42 +152,28 @@ export const queryDocumentController = async (req, res, next) => {
     });
     res.status(200).json({
       success: true,
-      message: "Answer and citations generated successfully.",
+      message: "Answer and citations",
       data,
     });
   } catch (error) {
+    console.error("queryDocumentController error:", error);
     next(error);
   }
 };
 
-export const searchInDocumentController = async (req, res, next) => {
-  try {
-    const { documentId } = req.params;
-    const { query, k, threshold } = req.query;
-    const data = await searchInDocumentService({
-      documentId,
-      userId: req.user.id,
-      query,
-      k,
-      threshold,
-    });
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: "Ranked chunk excerpts",
-      data,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
+// ── T-24: Delete ─────────────────────────────────────────────────────────────
+/**
+ * @route  DELETE /api/rag/documents/:documentId
+ * @desc   Delete PDF (from DB) and its chunks/vectors
+ * @access Protected
+ */
 export const deleteDocumentController = async (req, res, next) => {
   try {
-    const { documentId } = req.params;
-
-    const data = await deleteDocumentService(documentId, req.user.id);
-
-    res.status(StatusCodes.OK).json({
+    const data = await deleteDocumentService(
+      req.params.documentId,
+      req.user.id,
+    );
+    res.status(200).json({
       success: true,
       message: "Document deleted successfully.",
       data,

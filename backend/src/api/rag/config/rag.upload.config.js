@@ -1,84 +1,51 @@
+/**
+ * @file rag.upload.config.js
+ * @description Multer configuration for RAG PDF uploads.
+ * Accepts only PDF files, enforces size limit from .env.
+ *
+ * NOTE: uses memoryStorage (not diskStorage). The uploaded file is
+ * kept in RAM as req.file.buffer and persisted straight into MySQL
+ * as a LONGBLOB — this is what makes uploads survive a deploy on
+ * hosts with an ephemeral filesystem (Vercel, Render free tier, etc.),
+ * since nothing is ever written to local disk.
+ */
+
 import multer from "multer";
-import path from "path";
-import fs from "fs";
-import { StatusCodes } from "http-status-codes";
 
-// Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const userId = req.user?.id;
-    const uploadPath = path.join(process.cwd(), 'uploads', 'documents', String(userId));
-    
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `${uniqueSuffix}${ext}`);
-  }
-});
+const RAG_MAX_UPLOAD_MB = parseInt(process.env.RAG_MAX_UPLOAD_MB ?? "5", 10);
 
-// File filter - only PDF
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'application/pdf') {
+const storage = multer.memoryStorage();
+
+const fileFilter = (_req, file, cb) => {
+  if (file.mimetype === "application/pdf") {
     cb(null, true);
   } else {
-    cb(new Error('Only PDF files are allowed'), false);
+    cb(new Error("Only PDF files are allowed"), false);
   }
 };
 
-// Create multer instance
-export const uploadRagDocument = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB
-  }
+export const ragUpload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: RAG_MAX_UPLOAD_MB * 1024 * 1024 },
 });
 
-// Error handler middleware for multer
+/**
+ * Handles multer-specific errors (file too large, wrong type).
+ * Must be placed after ragUpload middleware in the route chain.
+ */
 export const createDocumentMulterErrorHandler = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
-    if (err.code === 'FILE_TOO_LARGE' || err.code === 'LIMIT_FILE_SIZE') {
-     return res.status(StatusCodes.REQUEST_TOO_LONG).json({
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
         success: false,
-        message: 'File too large. Maximum size is 10MB.'
+        message: `File too large. Maximum size is ${RAG_MAX_UPLOAD_MB}MB.`,
       });
     }
-    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        success: false,
-        message: 'Unexpected field. Please upload a single file.'
-      });
-    }
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      success: false,
-      message: `Upload error: ${err.message}`
-    });
+    return res.status(400).json({ success: false, message: err.message });
   }
-  
-  if (err.message === 'Only PDF files are allowed') {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      success: false,
-      message: 'Only PDF files are allowed.'
-    });
+  if (err?.message === "Only PDF files are allowed") {
+    return res.status(400).json({ success: false, message: err.message });
   }
-  
   next(err);
-};
-
-
-
-export const uploadRagDocumentWithErrorHandling = (req, res, next) => {
-  uploadRagDocument.single("file")(req, res, (err) => {
-    if (err) {
-      return createDocumentMulterErrorHandler(err, req, res, next);
-    }
-    next();
-  });
 };

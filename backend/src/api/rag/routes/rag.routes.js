@@ -1,43 +1,61 @@
+/**
+ * @file rag.routes.js
+ * @description All RAG document routes.
+ * Mount at: /api/rag/documents
+ */ 
+
 import express from "express";
 import { authenticateUser } from "../../../middleware/authentication.js";
-// Fixed: Added config/ folder
 import {
-  uploadRagDocument,
-  createDocumentMulterErrorHandler, uploadRagDocumentWithErrorHandling,
+  ragUpload,
+  createDocumentMulterErrorHandler,
 } from "../config/rag.upload.config.js";
 import {
   createDocumentController,
   listDocumentsController,
   getDocumentMetaController,
-  queryDocumentController,
   getDocumentFileController,
   searchInDocumentController,
+  queryDocumentController,
   deleteDocumentController,
 } from "../controller/rag.controller.js";
-import { documentIdParamValidation } from "../validation/rag.validation.js";
-import { queryDocumentValidation } from "../validation/rag.validation.js";
-
-import { searchInDocumentValidation } from "../validation/rag.validation.js";
+import {
+  documentIdParamValidation,
+  searchDocumentValidation,
+  queryDocumentValidation,
+} from "../validation/rag.validation.js";
 
 const router = express.Router();
 
-// Upload document route
-
+// ── T-22 ───────────────────────────────
+/**
+ * @route POST /api/rag/documents
+ * @desc  Upload and process a PDF
+ */
 router.post(
-  "/",
+  '/',
   authenticateUser,
-  uploadRagDocumentWithErrorHandling,
-  createDocumentController,
+  ragUpload.single('file'),
+  createDocumentMulterErrorHandler,
+  createDocumentController
 );
 
+// ── T-24 ───────────────────────────────
+/**
+ * @route GET /api/rag/documents
+ * @desc  List all documents for the user
+ */
+router.get('/', authenticateUser, listDocumentsController);
 
-router.get("/", authenticateUser, listDocumentsController);
-
+/**
+ * @route GET /api/rag/documents/:documentId
+ * @desc  Get document metadata
+ */
 router.get(
-  "/:documentId",
+  '/:documentId',
   authenticateUser,
   documentIdParamValidation,
-  getDocumentMetaController,
+  getDocumentMetaController
 );
 
 /**
@@ -52,26 +70,38 @@ router.get(
   getDocumentFileController,
 );
 
-//AI Query Grounded RAG system route
-router.post(
-  "/:documentId/query",
-  authenticateUser,
-  queryDocumentValidation,
-  queryDocumentController,
-);
-
+/**
+ * @route DELETE /api/rag/documents/:documentId
+ * @desc  Delete document (row + PDF bytes) from the DB
+ */
 router.delete(
-  "/:documentId",
+  '/:documentId',
   authenticateUser,
   documentIdParamValidation,
-  deleteDocumentController,
+  deleteDocumentController
 );
 
+// ── T-23 ───────────────────────────────
+/**
+ * @route GET /api/rag/documents/:documentId/search
+ * @desc  Semantic search within a document
+ */
 router.get(
-  "/:documentId/search",
+  '/:documentId/search',
   authenticateUser,
-  searchInDocumentValidation,
-  searchInDocumentController,
+  searchDocumentValidation,
+  searchInDocumentController
+);
+
+/**
+ * @route POST /api/rag/documents/:documentId/query
+ * @desc  AI query grounded in document
+ */
+router.post(
+  '/:documentId/query',
+  authenticateUser,
+  queryDocumentValidation,
+  queryDocumentController
 );
 
 export default router;
